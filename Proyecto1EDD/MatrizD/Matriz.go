@@ -1,7 +1,9 @@
 package MatrizD
 
 import (
+	"fmt"
 	"reflect"
+	"strconv"
 )
 
 type NodoInfo struct {
@@ -14,6 +16,7 @@ type NodoInfo struct {
 	Precio    float64
 	Dia       int
 	Categoria string
+	datos2    []infor
 }
 
 type NodoV struct {
@@ -22,6 +25,9 @@ type NodoV struct {
 	SUR       interface{}
 	OESTE     interface{}
 	Categoria string
+	Pos       int
+}
+type infor struct {
 }
 
 type NodoH struct {
@@ -30,6 +36,7 @@ type NodoH struct {
 	SUR   interface{}
 	OESTE interface{}
 	dia   int
+	Pos   int
 }
 
 type Matriz struct {
@@ -45,7 +52,7 @@ type Nodoaño struct {
 
 type Lista_Simple struct {
 	inico    *Nodoaño
-	cantidad int
+	Cantidad int
 }
 
 type NodoM struct {
@@ -58,7 +65,7 @@ type NodoM struct {
 type Lista_doble struct {
 	inicio   *NodoM
 	fin      *NodoM
-	cantidad int
+	Cantidad int
 }
 
 type Pedidos struct {
@@ -219,6 +226,7 @@ func (m *Matriz) getUltimoH(cab *NodoV, categoria string) interface{} {
 }
 
 func (m *Matriz) Inser(nuevo *NodoInfo) {
+
 	vert := m.getV(nuevo.Categoria)
 	hor := m.getH(nuevo.Dia)
 	if vert == nil {
@@ -252,7 +260,7 @@ func (m *Matriz) Inser(nuevo *NodoInfo) {
 			der.(*NodoV).ESTE = nuevo
 			nuevo.OESTE = der
 			temp.(*NodoInfo).OESTE = nuevo
-			nuevo.OESTE = temp
+			nuevo.ESTE = temp
 		}
 	}
 
@@ -296,12 +304,14 @@ func (l *Lista_Simple) InserSimple(doble *Lista_doble, año int) {
 	nuevo := &Nodoaño{Año: año, Lista: doble}
 	if l.inico == nil {
 		l.inico = nuevo
+	} else {
+		inicio := l.inico
+		for inicio.Siguiente != nil {
+			inicio = inicio.Siguiente
+		}
+
+		inicio.Siguiente = nuevo
 	}
-	inicio := l.inico
-	for inicio.Siguiente != nil {
-		inicio = inicio.Siguiente
-	}
-	inicio.Siguiente = nuevo
 }
 
 func (l *Lista_doble) InserDoble(m *Matriz, mes int) {
@@ -314,4 +324,112 @@ func (l *Lista_doble) InserDoble(m *Matriz, mes int) {
 		inicio = inicio.siguiente
 	}
 	inicio.siguiente = nuevo
+}
+
+func (m *Matriz) Graficar() string {
+	dot := "digraph Sparce_Matrix {\nnode [shape=box]\nMT[label=\"Matrix\",width=1.5,style=filled,fillcolor=firebrick1,group=1];\ne0[ shape = point, width = 0 ];\ne1[ shape = point, width = 0 ];\n"
+	var aux interface{} = m.CabV
+
+	contV := 0
+	relaciones := ""
+	relfin := "MT->V0\n"
+	for aux != nil {
+		dot += "V" + strconv.Itoa(contV) + "[label=\"" + aux.(*NodoV).Categoria + "\"" + "width = 1.5 style = filled, fillcolor = bisque1, group = 1];\n"
+		if aux.(*NodoV).SUR != nil {
+			relaciones += "V" + strconv.Itoa(contV) + "-> V" + strconv.Itoa(contV+1) + "\n"
+			relaciones += "V" + strconv.Itoa(contV+1) + "-> V" + strconv.Itoa(contV) + "\n"
+		}
+		contV++
+		aux = aux.(*NodoV).SUR
+	}
+	dot += relaciones
+	dot += relfin
+	relaciones = ""
+	var aux2 interface{} = m.CabH
+	contH := 0
+	contG := 2
+	relfin += "MT->H0\n"
+	resame := "{rank=same; MT;"
+	for aux2 != nil {
+		dot += "H" + strconv.Itoa(contH) + "[label=\"" + strconv.Itoa(aux2.(*NodoH).dia) + "\"" + "width = 1.5 style = filled, fillcolor = lightskyblue, group =" + strconv.Itoa(contG) + "];\n"
+		if aux2.(*NodoH).ESTE != nil {
+			relaciones += "H" + strconv.Itoa(contH) + "-> H" + strconv.Itoa(contH+1) + "\n"
+			relaciones += "H" + strconv.Itoa(contH+1) + "-> H" + strconv.Itoa(contH) + "\n"
+
+		}
+		resame += "H" + strconv.Itoa(contH) + ";"
+		contH++
+		contG++
+		aux2 = aux2.(*NodoH).ESTE
+	}
+	resame += "}\n"
+	dot += relfin
+	dot += relaciones
+	dot += resame
+	aux = m.CabV
+	aux2 = m.CabH
+	contG = 2
+	for aux2 != nil {
+		temp := aux2.(*NodoH).SUR
+		//temp2 := temp.(*NodoInfo)
+		for temp != nil {
+			dot += "\"" + fmt.Sprintf("%p", *&temp) + "\"" + "[label=\"Pedidos\" width=1.5,group=" + strconv.Itoa(contG) + "];\n"
+			temp = temp.(*NodoInfo).SUR
+
+		}
+		contG++
+		aux2 = aux2.(*NodoH).ESTE
+	}
+	aux2 = m.CabH
+	aux = m.CabV
+	contV = 0
+	contH = 0
+
+	for aux != nil {
+		resame = "{rank=same "
+		temp := aux.(*NodoV).ESTE
+		//temp2 := temp.(*NodoInfo)
+		//temp3 := temp2.ESTE.(*NodoInfo)
+		if temp != nil {
+			resame += "V" + strconv.Itoa(contV) + ";"
+			dot += "V" + strconv.Itoa(contV) + "->" + "\"" + fmt.Sprintf("%p", *&(temp)) + "\"" + "\n"
+			dot += "\"" + fmt.Sprintf("%p", *&temp) + "\"" + "->" + "V" + strconv.Itoa(contV) + "\n"
+
+		}
+		for temp != nil {
+			if temp.(*NodoInfo).ESTE != nil {
+				dot += "\"" + fmt.Sprintf("%p", *&temp) + "\"" + "->" + "\"" + fmt.Sprintf("%p", *&temp.(*NodoInfo).ESTE) + "\"" + "\n"
+				dot += "\"" + fmt.Sprintf("%p", *&temp.(*NodoInfo).ESTE) + "\"" + "->" + "\"" + fmt.Sprintf("%p", *&temp) + "\"" + "\n"
+
+			}
+			resame += "\"" + fmt.Sprintf("%p", *&temp) + "\"" + ";"
+			temp = temp.(*NodoInfo).ESTE
+		}
+		resame += "}\n"
+		contV++
+		dot += resame
+		aux = aux.(*NodoV).SUR
+	}
+
+	for aux2 != nil {
+		temp := aux2.(*NodoH).SUR
+		//temp2 := temp.(*NodoInfo)
+		//temp3 := temp2.SUR.(*NodoInfo)
+		if temp != nil {
+			dot += "H" + strconv.Itoa(contH) + "->" + "\"" + fmt.Sprintf("%p", *&temp) + "\"" + "\n"
+			dot += "\"" + fmt.Sprintf("%p", *&temp) + "\"" + "->" + "H" + strconv.Itoa(contH) + "\n"
+		}
+		for temp != nil {
+			if temp.(*NodoInfo).SUR != nil {
+				dot += "\"" + fmt.Sprintf("%p", *&temp) + "\"" + "->" + "\"" + fmt.Sprintf("%p", *&temp.(*NodoInfo).SUR) + "\"" + "\n"
+				dot += "\"" + fmt.Sprintf("%p", *&temp.(*NodoInfo).SUR) + "\"" + "->" + "\"" + fmt.Sprintf("%p", *&temp) + "\"" + "\n"
+			}
+			temp = temp.(*NodoInfo).SUR
+		}
+		contH++
+		aux2 = aux2.(*NodoH).ESTE
+	}
+	fmt.Println(dot)
+
+	return dot
 }

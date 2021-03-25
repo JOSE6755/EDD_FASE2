@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"reflect"
 	"strconv"
 	"strings"
 
@@ -657,13 +656,15 @@ func mPedidos(p MatrizD.Pedidos) {
 		for j := 0; j < len(p.Ped[i].Productos); j++ {
 			if BuscarAVL(p.Ped[i].Tienda, p.Ped[i].Departamento, p.Ped[i].Calificacion, p.Ped[i].Productos[j].Codigo, 1, nil) == true {
 				nuevoND := &MatrizD.NodoInfo{ESTE: nil, NORTE: nil, SUR: nil, OESTE: nil, Cantida: 1, Producto: p.Ped[i].Productos[j].Codigo, Precio: ArbolAVL.Getprec(), Dia: d, Categoria: p.Ped[i].Departamento}
-				fmt.Println(reflect.TypeOf(nuevoND).String())
+
 				nuevaM.Inser(nuevoND)
 			}
 
 		}
+		nuevaM.Graficar()
 		nuevaLD.InserDoble(nuevaM, m)
 		listaP.InserSimple(nuevaLD, año)
 
 	}
+
 }
