@@ -144,7 +144,7 @@ func prod(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 	w.Header().Set("Content-Type", "application-json")
 	w.WriteHeader(http.StatusCreated)
-	Encontrado(tempo.Nombre, tempo.Departamento, tempo.Calificacion, nil, w, 0)
+	Encontrado(tempo.Nombre, tempo.Departamento, tempo.Calificacion, nil, w, 0, nil, nil, 0, 0)
 
 }
 
@@ -242,7 +242,9 @@ func (l *Lista_doble) listar(w http.ResponseWriter) {
 	}
 }
 
-func find(nombre string, c Lista_doble, arbol *ArbolAVL.Arbolavl, w http.ResponseWriter, tiendas int) bool {
+var ex bool
+
+func find(nombre string, c Lista_doble, arbol *ArbolAVL.Arbolavl, w http.ResponseWriter, tiendas int, pedidos *MatrizD.Lista_Simple, nuevo *MatrizD.NodoInfo, año int, mes int) bool {
 	encontrado := false
 	inicio := c.inicio
 
@@ -253,7 +255,7 @@ func find(nombre string, c Lista_doble, arbol *ArbolAVL.Arbolavl, w http.Respons
 			if arbol != nil {
 				inicio.arbol = arbol
 				inicio.Productos = tiendas
-			} else {
+			} else if arbol == nil && nuevo == nil && año == 0 && pedidos == nil {
 				produ := make([][]string, inicio.Productos)
 				for i := 0; i < inicio.Productos; i++ {
 					produ[i] = make([]string, 6)
@@ -273,6 +275,9 @@ func find(nombre string, c Lista_doble, arbol *ArbolAVL.Arbolavl, w http.Respons
 
 				//fmt.Println(b, "\n", aux)
 				json.NewEncoder(w).Encode(aux)
+			} else if pedidos != nil {
+				inicio.pedidos = pedidos
+
 			}
 
 			break
@@ -324,7 +329,7 @@ func llenar(a Datos_fin) {
 
 }
 
-func Encontrado(nombre string, departamento string, calificacion int, arbol *ArbolAVL.Arbolavl, w http.ResponseWriter, produ int) {
+func Encontrado(nombre string, departamento string, calificacion int, arbol *ArbolAVL.Arbolavl, w http.ResponseWriter, produ int, pedidos *MatrizD.Lista_Simple, nuevo *MatrizD.NodoInfo, año int, mes int) {
 	n := 0
 	d := 0
 
@@ -341,7 +346,7 @@ func Encontrado(nombre string, departamento string, calificacion int, arbol *Arb
 
 		n = (i*len(depas)+d)*5 + (calificacion - 1)
 		fmt.Println(n)
-		if find(nombre, vector[n], arbol, w, produ) == true {
+		if find(nombre, vector[n], arbol, w, produ, pedidos, nuevo, año, mes) == true {
 			fmt.Println("asdasdasd")
 			break
 		}
@@ -581,7 +586,7 @@ func inven(t Inventarios) {
 			prueba.Insertar(t.Tienda[i].Productos[j].Nombre, t.Tienda[i].Productos[j].Codigo, t.Tienda[i].Productos[j].Descripcion, t.Tienda[i].Productos[j].Precio, t.Tienda[i].Productos[j].Cantidad, t.Tienda[i].Productos[j].Imagen)
 
 		}
-		Encontrado(t.Tienda[i].Tienda, t.Tienda[i].Departameto, t.Tienda[i].Calificacion, prueba, nil, len(t.Tienda[i].Productos))
+		Encontrado(t.Tienda[i].Tienda, t.Tienda[i].Departameto, t.Tienda[i].Calificacion, prueba, nil, len(t.Tienda[i].Productos), nil, nil, 0, 0)
 	}
 
 }
@@ -642,29 +647,145 @@ func AV(nombre string, c Lista_doble, codigo int, cantidad int, l *MatrizD.Lista
 	return encontrado
 }
 
-var listaP MatrizD.Lista_Simple
-
 func mPedidos(p MatrizD.Pedidos) {
+	mex := false
+	mex3 := false
+
 	for i := 0; i < len(p.Ped); i++ {
 		a := strings.Split(p.Ped[i].Fecha, "-")
 		d, _ := strconv.Atoi(a[0])
 		m, _ := strconv.Atoi(a[1])
 		año, _ := strconv.Atoi(a[2])
-		nuevaM := &MatrizD.Matriz{}
-		nuevaLD := &MatrizD.Lista_doble{}
+		mex2 := Buscmat(p.Ped[i].Tienda, p.Ped[i].Departamento, p.Ped[i].Calificacion, d, año, m, &mex, nil, nil, &mex3, nil)
+		if mex == false {
 
-		for j := 0; j < len(p.Ped[i].Productos); j++ {
-			if BuscarAVL(p.Ped[i].Tienda, p.Ped[i].Departamento, p.Ped[i].Calificacion, p.Ped[i].Productos[j].Codigo, 1, nil) == true {
-				nuevoND := &MatrizD.NodoInfo{ESTE: nil, NORTE: nil, SUR: nil, OESTE: nil, Cantida: 1, Producto: p.Ped[i].Productos[j].Codigo, Precio: ArbolAVL.Getprec(), Dia: d, Categoria: p.Ped[i].Departamento}
+			nombre := ""
+			if mex2 == false && mex3 == false {
+				nuevaM := &MatrizD.Matriz{}
+				nuevaLD := &MatrizD.Lista_doble{}
+				listaP := &MatrizD.Lista_Simple{}
+				for j := 0; j < len(p.Ped[i].Productos); j++ {
 
-				nuevaM.Inser(nuevoND)
+					if BuscarAVL(p.Ped[i].Tienda, p.Ped[i].Departamento, p.Ped[i].Calificacion, p.Ped[i].Productos[j].Codigo, 1, nil) == true {
+						nuevoND := &MatrizD.NodoInfo{ESTE: nil, NORTE: nil, SUR: nil, OESTE: nil, Cantida: 1, Producto: p.Ped[i].Productos[j].Codigo, Precio: ArbolAVL.Getprec(), Dia: d, Categoria: p.Ped[i].Departamento}
+
+						nuevaM.Inser(nuevoND)
+						nombre = p.Ped[i].Tienda
+
+					}
+				}
+				nuevaLD.InserDoble(nuevaM, m)
+				listaP.InserSimple(nuevaLD, año)
+				nuevaM.Graficar(d, m, año, nombre)
+				Encontrado(nombre, p.Ped[i].Departamento, p.Ped[i].Calificacion, nil, nil, 0, listaP, nil, 0, 0)
+
+			} else if mex2 == true {
+				nuevaM := &MatrizD.Matriz{}
+				for j := 0; j < len(p.Ped[i].Productos); j++ {
+
+					if BuscarAVL(p.Ped[i].Tienda, p.Ped[i].Departamento, p.Ped[i].Calificacion, p.Ped[i].Productos[j].Codigo, 1, nil) == true {
+						nuevoND := &MatrizD.NodoInfo{ESTE: nil, NORTE: nil, SUR: nil, OESTE: nil, Cantida: 1, Producto: p.Ped[i].Productos[j].Codigo, Precio: ArbolAVL.Getprec(), Dia: d, Categoria: p.Ped[i].Departamento}
+
+						nuevaM.Inser(nuevoND)
+						nombre = p.Ped[i].Tienda
+
+					}
+				}
+				nuevaM.Graficar(d, m, año, nombre)
+				Buscmat(p.Ped[i].Tienda, p.Ped[i].Departamento, p.Ped[i].Calificacion, d, año, m, nil, nuevaM, nil, nil, nil)
+			} else if mex3 == true {
+				mex3 = false
+				nuevaM := &MatrizD.Matriz{}
+				nuevaLD := &MatrizD.Lista_doble{}
+
+				for j := 0; j < len(p.Ped[i].Productos); j++ {
+
+					if BuscarAVL(p.Ped[i].Tienda, p.Ped[i].Departamento, p.Ped[i].Calificacion, p.Ped[i].Productos[j].Codigo, 1, nil) == true {
+						nuevoND := &MatrizD.NodoInfo{ESTE: nil, NORTE: nil, SUR: nil, OESTE: nil, Cantida: 1, Producto: p.Ped[i].Productos[j].Codigo, Precio: ArbolAVL.Getprec(), Dia: d, Categoria: p.Ped[i].Departamento}
+
+						nuevaM.Inser(nuevoND)
+						nombre = p.Ped[i].Tienda
+
+					}
+				}
+				nuevaLD.InserDoble(nuevaM, m)
+
+				Buscmat(nombre, p.Ped[i].Departamento, p.Ped[i].Calificacion, d, año, m, nil, nuevaM, nil, nil, nuevaLD)
+				nuevaM.Graficar(d, m, año, nombre)
+			}
+
+		} else {
+			for j := 0; j < len(p.Ped[i].Productos); j++ {
+				if BuscarAVL(p.Ped[i].Tienda, p.Ped[i].Departamento, p.Ped[i].Calificacion, p.Ped[i].Productos[j].Codigo, 1, nil) == true {
+					nuevoND := &MatrizD.NodoInfo{ESTE: nil, NORTE: nil, SUR: nil, OESTE: nil, Cantida: 1, Producto: p.Ped[i].Productos[j].Codigo, Precio: ArbolAVL.Getprec(), Dia: d, Categoria: p.Ped[i].Departamento}
+					nombre := p.Ped[i].Tienda
+					Buscmat(nombre, p.Ped[i].Departamento, p.Ped[i].Calificacion, d, año, m, nil, nil, nuevoND, nil, nil)
+
+				}
+
 			}
 
 		}
-		nuevaM.Graficar()
-		nuevaLD.InserDoble(nuevaM, m)
-		listaP.InserSimple(nuevaLD, año)
 
 	}
+}
+
+func Buscmat(nombre string, departamento string, calificacion int, dia int, año int, mes int, m *bool, nuevaM *MatrizD.Matriz, nuevoP *MatrizD.NodoInfo, j *bool, LD *MatrizD.Lista_doble) bool {
+	n := 0
+	d := 0
+	encontrado := false
+
+	for i := 0; i < len(depas); i++ {
+		fmt.Println(nombre)
+		if depas[i] == departamento {
+			d = i
+
+			break
+		}
+	}
+	fmt.Println(len(indices))
+	for i := 0; i < len(indices); i++ {
+
+		n = (i*len(depas)+d)*5 + (calificacion - 1)
+		fmt.Println(n)
+		if findmatriz(nombre, vector[n], dia, año, mes, m, nil, nuevoP, j, LD) == true {
+			fmt.Println("asdasdasd")
+			encontrado = true
+			break
+		}
+	}
+	return encontrado
+}
+func findmatriz(nombre string, c Lista_doble, dia int, año int, mes int, m *bool, nuevaM *MatrizD.Matriz, nuevoP *MatrizD.NodoInfo, n *bool, LD *MatrizD.Lista_doble) bool {
+	encontrado := false
+	inicio := c.inicio
+
+	for inicio != nil {
+		if inicio.Tiendas.Nombre == nombre {
+			if nuevaM == nil && inicio.pedidos != nil {
+				if n != nil {
+					*n = true
+				}
+				if LD != nil {
+					inicio.pedidos.InserSimple(LD, año)
+					break
+				}
+				if inicio.pedidos.Esnul() == false {
+
+					encontrado = inicio.pedidos.Buscar(dia, año, mes, nuevoP, m, nombre)
+					break
+				} else {
+					encontrado = false
+					break
+				}
+			} else if nuevaM != nil {
+				inicio.pedidos.Nuevomes(nuevaM, mes)
+			}
+			break
+		} else {
+			inicio = inicio.siguiente
+		}
+	}
+	return encontrado
 
 }

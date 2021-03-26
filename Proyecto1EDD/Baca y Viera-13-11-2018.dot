@@ -1,0 +1,34 @@
+digraph Sparce_Matrix {
+node [shape=box]
+MT[label="Matrix",width=1.5,style=filled,fillcolor=firebrick1,group=1];
+e0[ shape = point, width = 0 ];
+e1[ shape = point, width = 0 ];
+V0[label="Seguridad y vigilancia"width = 1.5 style = filled, fillcolor = bisque1, group = 1];
+MT->V0
+H0[label="13"width = 1.5 style = filled, fillcolor = lightskyblue, group =2];
+MT->V0
+MT->H0
+{rank=same; MT;H0;}
+"0xc000142900"[label="Pedidos" width=1.5,group=2];
+"0xc000142870"[label="Pedidos" width=1.5,group=2];
+"0xc0001427e0"[label="Pedidos" width=1.5,group=2];
+"0xc000142750"[label="Pedidos" width=1.5,group=2];
+V0->"0xc000142900"
+"0xc000142900"->V0
+"0xc000142900"->"0xc000142870"
+"0xc000142870"->"0xc000142900"
+"0xc000142870"->"0xc0001427e0"
+"0xc0001427e0"->"0xc000142870"
+"0xc0001427e0"->"0xc000142750"
+"0xc000142750"->"0xc0001427e0"
+{rank=same V0;"0xc000142900";"0xc000142870";"0xc0001427e0";"0xc000142750";}
+H0->"0xc000142900"
+"0xc000142900"->H0
+"0xc000142900"->"0xc000142870"
+"0xc000142870"->"0xc000142900"
+"0xc000142870"->"0xc0001427e0"
+"0xc0001427e0"->"0xc000142870"
+"0xc0001427e0"->"0xc000142750"
+"0xc000142750"->"0xc0001427e0"
+
+}

@@ -2,6 +2,10 @@ package MatrizD
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
+	"os/exec"
 	"reflect"
 	"strconv"
 )
@@ -313,20 +317,62 @@ func (l *Lista_Simple) InserSimple(doble *Lista_doble, año int) {
 		inicio.Siguiente = nuevo
 	}
 }
+func (l *Lista_Simple) Esnul() bool {
+	if l.inico == nil {
+		return true
+	}
+	return false
+}
+func (l *Lista_Simple) Nuevomes(nuevaM *Matriz, mes int) {
+	inicio := l.inico
+	for inicio != nil {
+		inicio = inicio.Siguiente
+	}
+	inicio.Lista.InserDoble(nuevaM, mes)
+}
+func (l *Lista_Simple) Buscar(dia int, año int, mes int, nuevo *NodoInfo, m *bool, nombre string) bool {
+	inicio := l.inico
+	encontrado := false
+	for inicio != nil {
+		if inicio.Año == año {
+			inicio.Lista.buscar(nombre, dia, mes, año, nuevo, m)
+			encontrado = true
+		}
+		inicio = inicio.Siguiente
+	}
+	return encontrado
+}
 
 func (l *Lista_doble) InserDoble(m *Matriz, mes int) {
 	nuevo := &NodoM{Mes: mes, pedidosM: m}
 	if l.inicio == nil {
 		l.inicio = nuevo
+	} else {
+		inicio := l.inicio
+		for inicio.siguiente != nil {
+			inicio = inicio.siguiente
+		}
+		inicio.siguiente = nuevo
 	}
+}
+func (l *Lista_doble) buscar(nombre string, dia int, mes int, año int, nuevo *NodoInfo, m *bool) bool {
 	inicio := l.inicio
-	for inicio.siguiente != nil {
+	for inicio != nil {
+		if inicio.Mes == mes {
+			if nuevo != nil {
+				inicio.pedidosM.Inser(nuevo)
+				inicio.pedidosM.Graficar(dia, mes, año, nombre)
+			}
+			*m = true
+			return true
+		}
 		inicio = inicio.siguiente
 	}
-	inicio.siguiente = nuevo
+	*m = false
+	return false
 }
 
-func (m *Matriz) Graficar() string {
+func (m *Matriz) Graficar(dia int, mes int, año int, nombre string) string {
 	dot := "digraph Sparce_Matrix {\nnode [shape=box]\nMT[label=\"Matrix\",width=1.5,style=filled,fillcolor=firebrick1,group=1];\ne0[ shape = point, width = 0 ];\ne1[ shape = point, width = 0 ];\n"
 	var aux interface{} = m.CabV
 
@@ -429,7 +475,16 @@ func (m *Matriz) Graficar() string {
 		contH++
 		aux2 = aux2.(*NodoH).ESTE
 	}
+	dot += "\n}"
 	fmt.Println(dot)
+	err := ioutil.WriteFile(nombre+"-"+strconv.Itoa(dia)+"-"+strconv.Itoa(mes)+"-"+strconv.Itoa(año)+".dot", []byte(dot), 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	ruta, _ := exec.LookPath("dot")
+	cmd, _ := exec.Command(ruta, "-Tpng", nombre+"-"+strconv.Itoa(dia)+"-"+strconv.Itoa(mes)+"-"+strconv.Itoa(año)+".dot").Output()
+	mode := int(0777)
+	ioutil.WriteFile(nombre+"-"+strconv.Itoa(dia)+"-"+strconv.Itoa(mes)+"-"+strconv.Itoa(año)+".png", cmd, os.FileMode(mode))
 
 	return dot
 }
