@@ -7,15 +7,16 @@ import (
 )
 
 type Nodo struct {
-	Nombre      string  `json:Nombre`
-	Codigo      int     `json:Codigo`
-	Descripcion string  `json:Descripcion`
-	Precio      float64 `json:Precio`
-	Cantidad    int     `json:Cantidad`
-	imagen      string
-	altura      int
-	izq         *Nodo
-	der         *Nodo
+	Nombre         string  `json:"Nombre"`
+	Codigo         int     `json:"Codigo"`
+	Descripcion    string  `json:"Descripcion"`
+	Precio         float64 `json:"Precio"`
+	Cantidad       int     `json:"Cantidad"`
+	Imagen         string  `json:"Imagen"`
+	Almacenamiento string  `json:"Almacenamiento"`
+	altura         int
+	izq            *Nodo
+	der            *Nodo
 }
 
 type Arbolavl struct {
@@ -107,7 +108,7 @@ func rodaID(n *Nodo, n1 *Nodo) *Nodo {
 func insertar(raiz *Nodo, nombre string, codigo int, des string, precio float64, cantidad int, imagen string, hc *bool) *Nodo {
 	var n1 *Nodo
 	if raiz == nil {
-		raiz = &Nodo{Nombre: nombre, Codigo: codigo, Descripcion: des, Precio: precio, Cantidad: cantidad, imagen: imagen, altura: 0}
+		raiz = &Nodo{Nombre: nombre, Codigo: codigo, Descripcion: des, Precio: precio, Cantidad: cantidad, Imagen: imagen, altura: 0}
 		*hc = true
 
 	} else if codigo < raiz.Codigo {
@@ -241,7 +242,7 @@ func (n *Nodo) DisplayNodesInOrder() {
 
 	}
 
-	pru[l] = append(pru[l], n.Nombre, strconv.Itoa(n.Codigo), n.Descripcion, strconv.Itoa(int(n.Precio)), strconv.Itoa(n.Cantidad), n.imagen)
+	pru[l] = append(pru[l], n.Nombre, strconv.Itoa(n.Codigo), n.Descripcion, strconv.Itoa(int(n.Precio)), strconv.Itoa(n.Cantidad), n.Imagen)
 	l++
 	fmt.Println(l)
 

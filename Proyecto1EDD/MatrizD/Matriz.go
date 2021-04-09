@@ -1,9 +1,13 @@
 package MatrizD
 
 import (
+	"bufio"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"reflect"
@@ -29,9 +33,11 @@ type NodoV struct {
 	SUR       interface{}
 	OESTE     interface{}
 	Categoria string
-	Pos       int
 }
 type infor struct {
+	Cantida  int
+	Producto int
+	Precio   float64
 }
 
 type NodoH struct {
@@ -40,7 +46,9 @@ type NodoH struct {
 	SUR   interface{}
 	OESTE interface{}
 	dia   int
-	Pos   int
+}
+type datos struct {
+	Nodos []NodoInfo
 }
 
 type Matriz struct {
@@ -87,8 +95,19 @@ type DP struct {
 type Prod struct {
 	Codigo int `json:"Codigo"`
 }
-
-var ped Pedidos
+type Infoaño struct {
+	Datos []Listaño `json:"Datos"`
+}
+type Listaño struct {
+	Año   int   `json:"Año"`
+	Meses []int `json:"Meses"`
+}
+type Imagenes struct {
+	Nombre string `json:"Nombre"`
+	Año    int    `json:"Año"`
+	Mes    int    `json:"Mes"`
+	Tipo   string `json:"Tipo"`
+}
 
 func (m *Matriz) getV(categoria string) interface{} {
 	if m.CabV == nil {
@@ -188,108 +207,134 @@ func (m *Matriz) crearV(categoria string) *NodoV {
 
 }
 
-func (m *Matriz) getUltimoV(cab *NodoH, dia int) interface{} {
+func (m *Matriz) getUltimoV(cab *NodoH, categoria string, n *bool) interface{} {
 	if cab.SUR == nil {
 		return cab
 	}
 	aux := cab.SUR
-	if dia <= aux.(*NodoInfo).Dia {
+	if categoria <= aux.(*NodoInfo).Categoria {
+		*n = true
 		return cab
 	}
 
 	for aux.(*NodoInfo).SUR != nil {
-		if dia > aux.(*NodoInfo).Dia && dia <= aux.(*NodoInfo).SUR.(*NodoInfo).Dia {
+		if categoria > aux.(*NodoInfo).Categoria && categoria <= aux.(*NodoInfo).SUR.(*NodoInfo).Categoria {
 			return aux
 		}
 		aux = aux.(*NodoInfo).SUR
 	}
-	if dia <= aux.(*NodoInfo).Dia {
+	if categoria <= aux.(*NodoInfo).Categoria {
 		return aux.(*NodoInfo).NORTE
 	}
 	return aux
 }
 
-func (m *Matriz) getUltimoH(cab *NodoV, categoria string) interface{} {
+func (m *Matriz) getUltimoH(cab *NodoV, dia int, n *bool) interface{} {
 	if cab.ESTE == nil {
 		return cab
 	}
 	aux := cab.ESTE
-	if categoria <= aux.(*NodoInfo).Categoria {
+	if dia <= aux.(*NodoInfo).Dia {
+		*n = true
 		return cab
 	}
 	for aux.(*NodoInfo).ESTE != nil {
-		if categoria > aux.(*NodoInfo).Categoria && categoria <= aux.(*NodoInfo).ESTE.(*NodoInfo).Categoria {
+		if dia > aux.(*NodoInfo).Dia && dia <= aux.(*NodoInfo).ESTE.(*NodoInfo).Dia {
 			return aux
 		}
 		aux = aux.(*NodoInfo).ESTE
 	}
-	if categoria <= aux.(*NodoInfo).Categoria {
+	if dia <= aux.(*NodoInfo).Dia {
 		return aux.(*NodoInfo).OESTE
 	}
 	return aux
 }
 
 func (m *Matriz) Inser(nuevo *NodoInfo) {
-
+	existe := false
 	vert := m.getV(nuevo.Categoria)
 	hor := m.getH(nuevo.Dia)
-	if vert == nil {
-		vert = m.crearV(nuevo.Categoria)
-	}
-	if hor == nil {
-		hor = m.crearH(nuevo.Dia)
-	}
 
-	der := m.getUltimoH(vert.(*NodoV), nuevo.Categoria)
-	sup := m.getUltimoV(hor.(*NodoH), nuevo.Dia)
+	if vert != nil && hor != nil {
+		der := m.getUltimoH(vert.(*NodoV), nuevo.Dia, &existe)
+		sup := m.getUltimoV(hor.(*NodoH), nuevo.Categoria, &existe)
+		if (reflect.TypeOf(der).String() == "*MatrizD.NodoInfo" && reflect.TypeOf(sup).String() == "*MatrizD.NodoInfo") || existe == true {
+			nuevo2 := infor{Cantida: nuevo.Cantida, Producto: nuevo.Producto, Precio: nuevo.Precio}
+			aux := der.(*NodoV).ESTE
 
-	if reflect.TypeOf(der).String() == "*MatrizD.NodoInfo" {
-		if der.(*NodoInfo).ESTE == nil {
-			der.(*NodoInfo).ESTE = nuevo
-			nuevo.OESTE = der
-		} else {
-			temp := der.(*NodoInfo).ESTE
-			der.(*NodoInfo).ESTE = nuevo
-			nuevo.OESTE = der
-			temp.(*NodoInfo).OESTE = nuevo
-			nuevo.ESTE = temp
+			aux.(*NodoInfo).datos2 = append(aux.(*NodoInfo).datos2, nuevo2)
 		}
-
 	} else {
-		if der.(*NodoV).ESTE == nil {
-			der.(*NodoV).ESTE = nuevo
-			nuevo.OESTE = der
-		} else {
-			temp := der.(*NodoV).ESTE
-			der.(*NodoV).ESTE = nuevo
-			nuevo.OESTE = der
-			temp.(*NodoInfo).OESTE = nuevo
-			nuevo.ESTE = temp
+		if vert == nil {
+			vert = m.crearV(nuevo.Categoria)
 		}
-	}
+		if hor == nil {
+			hor = m.crearH(nuevo.Dia)
+		}
+		der := m.getUltimoH(vert.(*NodoV), nuevo.Dia, &existe)
+		sup := m.getUltimoV(hor.(*NodoH), nuevo.Categoria, &existe)
+		if reflect.TypeOf(der).String() == "*MatrizD.NodoInfo" {
+			if der.(*NodoInfo).ESTE == nil {
+				der.(*NodoInfo).ESTE = nuevo
+				nuevo.OESTE = der
+				nuevo2 := infor{Cantida: nuevo.Cantida, Producto: nuevo.Producto, Precio: nuevo.Precio}
+				nuevo.datos2 = append(nuevo.datos2, nuevo2)
+			} else {
+				temp := der.(*NodoInfo).ESTE
+				der.(*NodoInfo).ESTE = nuevo
+				nuevo.OESTE = der
+				temp.(*NodoInfo).OESTE = nuevo
+				nuevo.ESTE = temp
+				nuevo2 := infor{Cantida: nuevo.Cantida, Producto: nuevo.Producto, Precio: nuevo.Precio}
+				nuevo.datos2 = append(nuevo.datos2, nuevo2)
+			}
 
-	if reflect.TypeOf(sup).String() == "*MatrizD.NodoInfo" {
-		if sup.(*NodoInfo).SUR == nil {
-			sup.(*NodoInfo).SUR = nuevo
-			nuevo.NORTE = sup
 		} else {
-			temp := sup.(*NodoInfo).SUR
-			sup.(*NodoInfo).SUR = nuevo
-			nuevo.NORTE = sup
-			temp.(*NodoInfo).NORTE = nuevo
-			nuevo.SUR = temp
+			if der.(*NodoV).ESTE == nil {
+				der.(*NodoV).ESTE = nuevo
+				nuevo.OESTE = der
+				nuevo2 := infor{Cantida: nuevo.Cantida, Producto: nuevo.Producto, Precio: nuevo.Precio}
+				nuevo.datos2 = append(nuevo.datos2, nuevo2)
+			} else {
+				temp := der.(*NodoV).ESTE
+				der.(*NodoV).ESTE = nuevo
+				nuevo.OESTE = der
+				temp.(*NodoInfo).OESTE = nuevo
+				nuevo.ESTE = temp
+				nuevo2 := infor{Cantida: nuevo.Cantida, Producto: nuevo.Producto, Precio: nuevo.Precio}
+				nuevo.datos2 = append(nuevo.datos2, nuevo2)
+			}
 		}
 
-	} else {
-		if sup.(*NodoH).SUR == nil {
-			sup.(*NodoH).SUR = nuevo
-			nuevo.NORTE = sup
+		if reflect.TypeOf(sup).String() == "*MatrizD.NodoInfo" {
+			if sup.(*NodoInfo).SUR == nil {
+				sup.(*NodoInfo).SUR = nuevo
+				nuevo.NORTE = sup
+				nuevo2 := infor{Cantida: nuevo.Cantida, Producto: nuevo.Producto, Precio: nuevo.Precio}
+				nuevo.datos2 = append(nuevo.datos2, nuevo2)
+			} else {
+				temp := sup.(*NodoInfo).SUR
+				sup.(*NodoInfo).SUR = nuevo
+				nuevo.NORTE = sup
+				temp.(*NodoInfo).NORTE = nuevo
+				nuevo.SUR = temp
+				nuevo2 := infor{Cantida: nuevo.Cantida, Producto: nuevo.Producto, Precio: nuevo.Precio}
+				nuevo.datos2 = append(nuevo.datos2, nuevo2)
+			}
+
 		} else {
-			temp := sup.(*NodoH).SUR
-			sup.(*NodoH).SUR = nuevo
-			nuevo.NORTE = sup
-			temp.(*NodoInfo).NORTE = nuevo
-			nuevo.SUR = temp
+			if sup.(*NodoH).SUR == nil {
+				sup.(*NodoH).SUR = nuevo
+				nuevo.NORTE = sup
+			} else {
+				temp := sup.(*NodoH).SUR
+				sup.(*NodoH).SUR = nuevo
+				nuevo.NORTE = sup
+				temp.(*NodoInfo).NORTE = nuevo
+				nuevo.SUR = temp
+				nuevo2 := infor{Cantida: nuevo.Cantida, Producto: nuevo.Producto, Precio: nuevo.Precio}
+				nuevo.datos2 = append(nuevo.datos2, nuevo2)
+			}
 		}
 	}
 
@@ -308,6 +353,7 @@ func (l *Lista_Simple) InserSimple(doble *Lista_doble, año int) {
 	nuevo := &Nodoaño{Año: año, Lista: doble}
 	if l.inico == nil {
 		l.inico = nuevo
+		l.Cantidad++
 	} else {
 		inicio := l.inico
 		for inicio.Siguiente != nil {
@@ -315,6 +361,7 @@ func (l *Lista_Simple) InserSimple(doble *Lista_doble, año int) {
 		}
 
 		inicio.Siguiente = nuevo
+		l.Cantidad++
 	}
 }
 func (l *Lista_Simple) Esnul() bool {
@@ -335,7 +382,7 @@ func (l *Lista_Simple) Buscar(dia int, año int, mes int, nuevo *NodoInfo, m *bo
 	encontrado := false
 	for inicio != nil {
 		if inicio.Año == año {
-			inicio.Lista.buscar(nombre, dia, mes, año, nuevo, m)
+			inicio.Lista.buscar(nombre, dia, mes, año, nuevo, m, l)
 			encontrado = true
 		}
 		inicio = inicio.Siguiente
@@ -347,23 +394,28 @@ func (l *Lista_doble) InserDoble(m *Matriz, mes int) {
 	nuevo := &NodoM{Mes: mes, pedidosM: m}
 	if l.inicio == nil {
 		l.inicio = nuevo
+		l.Cantidad++
 	} else {
 		inicio := l.inicio
 		for inicio.siguiente != nil {
 			inicio = inicio.siguiente
 		}
 		inicio.siguiente = nuevo
+		l.Cantidad++
 	}
 }
-func (l *Lista_doble) buscar(nombre string, dia int, mes int, año int, nuevo *NodoInfo, m *bool) bool {
+func (l *Lista_doble) buscar(nombre string, dia int, mes int, año int, nuevo *NodoInfo, m *bool, lis *Lista_Simple) bool {
 	inicio := l.inicio
 	for inicio != nil {
 		if inicio.Mes == mes {
 			if nuevo != nil {
 				inicio.pedidosM.Inser(nuevo)
 				inicio.pedidosM.Graficar(dia, mes, año, nombre)
+				lis.Añitos(nombre)
 			}
-			*m = true
+			if m != nil {
+				*m = true
+			}
 			return true
 		}
 		inicio = inicio.siguiente
@@ -477,14 +529,221 @@ func (m *Matriz) Graficar(dia int, mes int, año int, nombre string) string {
 	}
 	dot += "\n}"
 	fmt.Println(dot)
-	err := ioutil.WriteFile(nombre+"-"+strconv.Itoa(dia)+"-"+strconv.Itoa(mes)+"-"+strconv.Itoa(año)+".dot", []byte(dot), 0644)
+	m.GraficarPedidos(dia, mes, año, nombre)
+	err := ioutil.WriteFile(nombre+"-"+strconv.Itoa(mes)+"-"+strconv.Itoa(año)+".dot", []byte(dot), 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
 	ruta, _ := exec.LookPath("dot")
-	cmd, _ := exec.Command(ruta, "-Tpng", nombre+"-"+strconv.Itoa(dia)+"-"+strconv.Itoa(mes)+"-"+strconv.Itoa(año)+".dot").Output()
+	cmd, _ := exec.Command(ruta, "-Tpng", nombre+"-"+strconv.Itoa(mes)+"-"+strconv.Itoa(año)+".dot").Output()
 	mode := int(0777)
-	ioutil.WriteFile(nombre+"-"+strconv.Itoa(dia)+"-"+strconv.Itoa(mes)+"-"+strconv.Itoa(año)+".png", cmd, os.FileMode(mode))
+	ioutil.WriteFile(nombre+"-"+strconv.Itoa(mes)+"-"+strconv.Itoa(año)+".png", cmd, os.FileMode(mode))
 
 	return dot
+}
+
+func (m *Matriz) GraficarPedidos(dia int, mes int, año int, nombre string) string {
+	dot := "digraph {\n    tbl[\n     shape=plaintext\n     label=<\n     <table border='0' cellborder='1' color='blue' cellspacing='0'>\n" + "<tr> <td>Departamento</td> <td> Dia </td> <td>Producto</td></tr>\n"
+	var aux interface{} = m.CabV
+
+	for aux != nil {
+
+		dot += "<tr>\n<td>" + aux.(*NodoV).Categoria + "</td>\n"
+
+		temp := aux.(*NodoV).ESTE
+		temp2 := temp.(*NodoInfo).NORTE
+		categoria := aux.(*NodoV).Categoria
+		var dia string
+		if reflect.TypeOf(temp2).String() == "*MatrizD.NodoH" {
+			dot += "<td>" + strconv.Itoa(temp2.(*NodoH).dia) + "</td>\n"
+			dia = strconv.Itoa(temp2.(*NodoH).dia)
+
+		} else {
+			for temp2 != nil {
+				if reflect.TypeOf(temp2).String() == "*MatrizD.NodoH" {
+					dot += "<td>" + strconv.Itoa(temp2.(*NodoH).dia) + "</td>\n"
+					dia = strconv.Itoa(temp2.(*NodoH).dia)
+					break
+
+				}
+				temp2 = temp2.(*NodoInfo).NORTE
+			}
+		}
+		for temp != nil {
+			for i := 0; i < len(temp.(*NodoInfo).datos2); i++ {
+				if i == 0 {
+					dot += "<td>Producto: " + strconv.Itoa(temp.(*NodoInfo).datos2[i].Producto) + "\nCantidad: " + strconv.Itoa(temp.(*NodoInfo).datos2[i].Cantida) + "\nPrecio: " + strconv.Itoa(int(temp.(*NodoInfo).datos2[i].Precio)) + "</td>\n</tr>"
+				} else {
+					dot += "<tr>\n<td>" + categoria + "</td>\n<td>" + dia + "</td>\n" + "<td>Codigo: " + strconv.Itoa(temp.(*NodoInfo).datos2[i].Producto) + " \nCantidad: " + strconv.Itoa(temp.(*NodoInfo).datos2[i].Cantida) + " \nPrecio: " + strconv.Itoa(int(temp.(*NodoInfo).datos2[i].Precio)) + "</td>\n</tr>\n"
+				}
+			}
+			temp = temp.(*NodoInfo).ESTE
+			if temp != nil {
+				temp2 = temp.(*NodoInfo).NORTE
+			}
+
+			if reflect.TypeOf(temp2).String() == "*MatrizD.NodoH" && temp != nil {
+
+				dia = strconv.Itoa(temp2.(*NodoH).dia)
+
+			} else {
+				if temp != nil {
+					for temp2 != nil {
+						if reflect.TypeOf(temp2).String() == "*MatrizD.NodoH" {
+
+							dia = strconv.Itoa(temp2.(*NodoH).dia)
+							break
+
+						}
+						temp2 = temp2.(*NodoInfo).NORTE
+					}
+				}
+			}
+
+		}
+		aux = aux.(*NodoV).SUR
+
+	}
+	dot += "</table>\n    >];\n}"
+	fmt.Println(dot)
+	err := ioutil.WriteFile(nombre+"-"+strconv.Itoa(mes)+"-"+strconv.Itoa(año)+"-Pedidos.dot", []byte(dot), 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	ruta, _ := exec.LookPath("dot")
+	cmd, _ := exec.Command(ruta, "-Tpng", nombre+"-"+strconv.Itoa(mes)+"-"+strconv.Itoa(año)+"-Pedidos.dot").Output()
+	mode := int(0777)
+	ioutil.WriteFile(nombre+"-"+strconv.Itoa(mes)+"-"+strconv.Itoa(año)+"-Pedidos.png", cmd, os.FileMode(mode))
+	return ""
+}
+func (l *Lista_Simple) Añitos(nombre string) {
+	dot := "digraph G{\n node[shape=circle]\n"
+	inicio := l.inico
+	for inicio != nil {
+		dot += strconv.Itoa(inicio.Año) + "\n"
+		año := strconv.Itoa(inicio.Año)
+		inicio2 := inicio.Lista.inicio
+		dot += año + "->" + strconv.Itoa(inicio2.Mes) + "\n"
+		for inicio2 != nil {
+			if inicio2.siguiente != nil {
+				dot += strconv.Itoa(inicio2.Mes) + "->" + strconv.Itoa(inicio2.siguiente.Mes) + "\n"
+			}
+			inicio2 = inicio2.siguiente
+		}
+		inicio.Lista.Mesesitos(nombre, inicio.Año)
+		inicio = inicio.Siguiente
+	}
+	dot += "\n}"
+	err := ioutil.WriteFile(nombre+"-Años"+".dot", []byte(dot), 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	ruta, _ := exec.LookPath("dot")
+	cmd, _ := exec.Command(ruta, "-Tpng", nombre+"-Años"+".dot").Output()
+	mode := int(0777)
+	ioutil.WriteFile(nombre+"-Años"+".png", cmd, os.FileMode(mode))
+
+}
+func (l *Lista_doble) Mesesitos(nombre string, año int) {
+	dot := "digraph G{\n node[shape=circle]\n"
+	inicio := l.inicio
+
+	for inicio != nil {
+		dot += strconv.Itoa(inicio.Mes) + "->" + strconv.Itoa(inicio.pedidosM.CabH.dia) + "\n"
+		temp := inicio.pedidosM.CabH
+		for temp != nil {
+			if temp.ESTE != nil {
+				dot += strconv.Itoa(temp.dia) + "->" + strconv.Itoa(temp.ESTE.(*NodoH).dia) + "\n"
+				temp = temp.ESTE.(*NodoH)
+			} else {
+				break
+			}
+
+		}
+		inicio = inicio.siguiente
+
+	}
+	dot += "\n}"
+	err := ioutil.WriteFile(nombre+"-"+strconv.Itoa(año)+"-Meses.dot", []byte(dot), 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	ruta, _ := exec.LookPath("dot")
+	cmd, _ := exec.Command(ruta, "-Tpng", nombre+"-"+strconv.Itoa(año)+"-Meses.dot").Output()
+	mode := int(0777)
+	ioutil.WriteFile(nombre+"-"+strconv.Itoa(año)+"-Meses.png", cmd, os.FileMode(mode))
+
+}
+
+func (l *Lista_Simple) Listaaños(w http.ResponseWriter) {
+	aux := make([]Listaño, l.Cantidad)
+	aux2 := Infoaño{}
+	inicio := l.inico
+
+	cont := 0
+	for inicio != nil {
+		meses := make([]int, inicio.Lista.Cantidad)
+		aux[cont].Año = inicio.Año
+		inicio.Lista.listameses(&meses)
+		aux[cont].Meses = meses
+		cont++
+		inicio = inicio.Siguiente
+	}
+	aux2.Datos = aux
+	json.NewEncoder(w).Encode(aux2)
+
+}
+func (l *Lista_doble) listameses(meses *[]int) {
+	inicio := l.inicio
+	cont := 0
+	for inicio != nil {
+		(*meses)[cont] = inicio.Mes
+		cont++
+		inicio = inicio.siguiente
+	}
+}
+
+func Img(nombre string, año int, mes int, w http.ResponseWriter) {
+	imgFile, _ := os.Open(nombre + "-" + strconv.Itoa(mes) + "-" + strconv.Itoa(año) + ".png")
+
+	defer imgFile.Close()
+	info, _ := imgFile.Stat()
+	var size int64 = info.Size()
+	buf := make([]byte, size)
+
+	lector := bufio.NewReader(imgFile)
+	lector.Read(buf)
+	imgBase64 := base64.StdEncoding.EncodeToString(buf)
+	fmt.Println(imgBase64)
+	json.NewEncoder(w).Encode(imgBase64)
+
+}
+
+func Años(nombre string, año int, mes int, w http.ResponseWriter) {
+	imgFile, _ := os.Open(nombre + "-Años" + ".png")
+
+	defer imgFile.Close()
+	info, _ := imgFile.Stat()
+	var size int64 = info.Size()
+	buf := make([]byte, size)
+
+	lector := bufio.NewReader(imgFile)
+	lector.Read(buf)
+	imgBase64 := base64.StdEncoding.EncodeToString(buf)
+	fmt.Println(imgBase64)
+	json.NewEncoder(w).Encode(imgBase64)
+}
+func Meses(nombre string, año int, mes int, w http.ResponseWriter) {
+	imgFile, _ := os.Open(nombre + "-" + strconv.Itoa(año) + "-Meses.png")
+
+	defer imgFile.Close()
+	info, _ := imgFile.Stat()
+	var size int64 = info.Size()
+	buf := make([]byte, size)
+
+	lector := bufio.NewReader(imgFile)
+	lector.Read(buf)
+	imgBase64 := base64.StdEncoding.EncodeToString(buf)
+	fmt.Println(imgBase64)
+	json.NewEncoder(w).Encode(imgBase64)
 }

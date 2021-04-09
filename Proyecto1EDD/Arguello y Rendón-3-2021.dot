@@ -1,0 +1,37 @@
+digraph Sparce_Matrix {
+node [shape=box]
+MT[label="Matrix",width=1.5,style=filled,fillcolor=firebrick1,group=1];
+e0[ shape = point, width = 0 ];
+e1[ shape = point, width = 0 ];
+V0[label="Electrónicos para autos"width = 1.5 style = filled, fillcolor = bisque1, group = 1];
+V1[label="Enchufes"width = 1.5 style = filled, fillcolor = bisque1, group = 1];
+V2[label="Tablets"width = 1.5 style = filled, fillcolor = bisque1, group = 1];
+V0-> V1
+V1-> V0
+V1-> V2
+V2-> V1
+MT->V0
+H0[label="29"width = 1.5 style = filled, fillcolor = lightskyblue, group =2];
+MT->V0
+MT->H0
+{rank=same; MT;H0;}
+"0xc00048a750"[label="Pedidos" width=1.5,group=2];
+"0xc00048a630"[label="Pedidos" width=1.5,group=2];
+"0xc00048a6c0"[label="Pedidos" width=1.5,group=2];
+V0->"0xc00048a750"
+"0xc00048a750"->V0
+{rank=same V0;"0xc00048a750";}
+V1->"0xc00048a630"
+"0xc00048a630"->V1
+{rank=same V1;"0xc00048a630";}
+V2->"0xc00048a6c0"
+"0xc00048a6c0"->V2
+{rank=same V2;"0xc00048a6c0";}
+H0->"0xc00048a750"
+"0xc00048a750"->H0
+"0xc00048a750"->"0xc00048a630"
+"0xc00048a630"->"0xc00048a750"
+"0xc00048a630"->"0xc00048a6c0"
+"0xc00048a6c0"->"0xc00048a630"
+
+}

@@ -176,13 +176,73 @@ func Pedidos(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	mPedidos(prueba)
 }
+func listaPedidos(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	var prueba busqueda
+
+	reqbody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		fmt.Fprint(w, "Inserte datos validos")
+	}
+	json.Unmarshal(reqbody, &prueba)
+	w.Header().Set("Content-Type", "application-json")
+	w.WriteHeader(http.StatusCreated)
+	Encontrado(prueba.Nombre, prueba.Departamento, prueba.Calificacion, nil, w, 1, nil, nil, 0, 0)
+
+}
+func matrices(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	var ima MatrizD.Imagenes
+
+	reqbody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		fmt.Fprint(w, "Inserte datos validos")
+	}
+	json.Unmarshal(reqbody, &ima)
+	w.Header().Set("Content-Type", "application-json")
+	w.WriteHeader(http.StatusCreated)
+	MatrizD.Img(ima.Nombre, ima.Año, ima.Mes, w)
+}
+func años(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	var ima MatrizD.Imagenes
+
+	reqbody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		fmt.Fprint(w, "Inserte datos validos")
+	}
+	json.Unmarshal(reqbody, &ima)
+	w.Header().Set("Content-Type", "application-json")
+	w.WriteHeader(http.StatusCreated)
+	MatrizD.Años(ima.Nombre, ima.Año, ima.Mes, w)
+}
+func meses(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	var ima MatrizD.Imagenes
+
+	reqbody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		fmt.Fprint(w, "Inserte datos validos")
+	}
+	json.Unmarshal(reqbody, &ima)
+	w.Header().Set("Content-Type", "application-json")
+	w.WriteHeader(http.StatusCreated)
+	MatrizD.Meses(ima.Nombre, ima.Año, ima.Mes, w)
+}
 
 func main() {
-
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", inicio)
 
 	router.HandleFunc("/Cargar", crear).Methods("POST")
+	router.HandleFunc("/Calendario", listaPedidos).Methods("POST")
+	router.HandleFunc("/Imagenes", matrices).Methods("POST")
+	router.HandleFunc("/ImagenesAños", años).Methods("POST")
+	router.HandleFunc("/ImagenesMes", meses).Methods("POST")
 	router.HandleFunc("/Inventario", invent).Methods("POST")
 	router.HandleFunc("/Pedidos", Pedidos).Methods("POST")
 	router.HandleFunc("/Datos", temporal).Methods("POST")
@@ -194,7 +254,6 @@ func main() {
 	router.HandleFunc("/getArreglo", graficar).Methods("GET")
 	http.ListenAndServe(":3000", router)
 	log.Fatal(http.ListenAndServe(":3000", router))
-
 }
 
 type nodo struct {
@@ -255,7 +314,7 @@ func find(nombre string, c Lista_doble, arbol *ArbolAVL.Arbolavl, w http.Respons
 			if arbol != nil {
 				inicio.arbol = arbol
 				inicio.Productos = tiendas
-			} else if arbol == nil && nuevo == nil && año == 0 && pedidos == nil {
+			} else if arbol == nil && nuevo == nil && año == 0 && pedidos == nil && tiendas == 0 {
 				produ := make([][]string, inicio.Productos)
 				for i := 0; i < inicio.Productos; i++ {
 					produ[i] = make([]string, 6)
@@ -277,7 +336,11 @@ func find(nombre string, c Lista_doble, arbol *ArbolAVL.Arbolavl, w http.Respons
 				json.NewEncoder(w).Encode(aux)
 			} else if pedidos != nil {
 				inicio.pedidos = pedidos
+				inicio.pedidos.Añitos(nombre)
+				tiendasM(nombre, pedidos)
 
+			} else if w != nil {
+				inicio.pedidos.Listaaños(w)
 			}
 
 			break
@@ -710,7 +773,7 @@ func mPedidos(p MatrizD.Pedidos) {
 				}
 				nuevaLD.InserDoble(nuevaM, m)
 
-				Buscmat(nombre, p.Ped[i].Departamento, p.Ped[i].Calificacion, d, año, m, nil, nuevaM, nil, nil, nuevaLD)
+				Buscmat(nombre, p.Ped[i].Departamento, p.Ped[i].Calificacion, d, año, m, nil, nil, nil, nil, nuevaLD)
 				nuevaM.Graficar(d, m, año, nombre)
 			}
 
@@ -748,7 +811,7 @@ func Buscmat(nombre string, departamento string, calificacion int, dia int, año
 
 		n = (i*len(depas)+d)*5 + (calificacion - 1)
 		fmt.Println(n)
-		if findmatriz(nombre, vector[n], dia, año, mes, m, nil, nuevoP, j, LD) == true {
+		if findmatriz(nombre, vector[n], dia, año, mes, m, nuevaM, nuevoP, j, LD) == true {
 			fmt.Println("asdasdasd")
 			encontrado = true
 			break
@@ -768,6 +831,8 @@ func findmatriz(nombre string, c Lista_doble, dia int, año int, mes int, m *boo
 				}
 				if LD != nil {
 					inicio.pedidos.InserSimple(LD, año)
+					tiendasM(nombre, inicio.pedidos)
+					inicio.pedidos.Añitos(nombre)
 					break
 				}
 				if inicio.pedidos.Esnul() == false {
@@ -780,6 +845,8 @@ func findmatriz(nombre string, c Lista_doble, dia int, año int, mes int, m *boo
 				}
 			} else if nuevaM != nil {
 				inicio.pedidos.Nuevomes(nuevaM, mes)
+				tiendasM(nombre, inicio.pedidos)
+				inicio.pedidos.Añitos(nombre)
 			}
 			break
 		} else {
@@ -789,3 +856,63 @@ func findmatriz(nombre string, c Lista_doble, dia int, año int, mes int, m *boo
 	return encontrado
 
 }
+
+func tiendasM(nombre string, m *MatrizD.Lista_Simple) {
+	n := 0
+	for i := 0; i < len(indices); i++ {
+		for j := 0; j < len(depas); j++ {
+			for z := 0; z < 5; z++ {
+				n = (i*len(depas)+j)*5 + z
+				mismatienda(vector[n], nombre, m)
+
+			}
+		}
+	}
+
+}
+func mismatienda(c Lista_doble, nombre string, m *MatrizD.Lista_Simple) {
+	inicio := c.inicio
+	for inicio != nil {
+		if inicio.Tiendas.Nombre == nombre {
+			inicio.pedidos = m
+		}
+		inicio = inicio.siguiente
+	}
+}
+
+func popaños(nombre string, departamento string, calificacion int, w http.ResponseWriter) {
+	//n := 0
+	//d := 0
+
+	for i := 0; i < len(depas); i++ {
+		fmt.Println(nombre)
+		if depas[i] == departamento {
+			//d = i
+			fmt.Println("Depas entro")
+
+			break
+		}
+	}
+	fmt.Println(len(indices), " ", len(depas))
+	for i := 0; i < len(indices); i++ {
+
+		//n = (i*len(depas)+d)*5 + (calificacion - 1)
+
+	}
+
+}
+
+/*func mandaraños(c Lista_doble, nombre string, w http.ResponseWriter) bool {
+	inicio := c.inicio
+	encontrado := false
+	for inicio != nil {
+		if inicio.Tiendas.Nombre == nombre {
+			encontrado=true
+
+		} else {
+			inicio = inicio.siguiente
+		}
+	}
+
+}
+*/
