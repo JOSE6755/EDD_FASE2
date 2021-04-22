@@ -1,0 +1,64 @@
+digraph {
+    tbl[
+     shape=plaintext
+     label=<
+     <table border='0' cellborder='1' color='blue' cellspacing='0'>
+<tr> <td>Departamento</td> <td> Dia </td> <td>Producto</td></tr>
+<tr>
+<td>Salud y Hogar</td>
+<td>19</td>
+<td>Producto: 253
+Cantidad: 1
+Precio: 873</td>
+</tr><tr>
+<td>Salud y Hogar</td>
+<td>19</td>
+<td>Codigo: 229 
+Cantidad: 1 
+Precio: 100</td>
+</tr>
+<tr>
+<td>Salud y Hogar</td>
+<td>19</td>
+<td>Codigo: 250 
+Cantidad: 1 
+Precio: 267</td>
+</tr>
+<tr>
+<td>Salud y Hogar</td>
+<td>19</td>
+<td>Codigo: 230 
+Cantidad: 1 
+Precio: 458</td>
+</tr>
+<tr>
+<td>Salud y Hogar</td>
+<td>19</td>
+<td>Codigo: 246 
+Cantidad: 1 
+Precio: 941</td>
+</tr>
+<tr>
+<td>Salud y Hogar</td>
+<td>19</td>
+<td>Codigo: 240 
+Cantidad: 1 
+Precio: 726</td>
+</tr>
+<tr>
+<td>Salud y Hogar</td>
+<td>19</td>
+<td>Codigo: 249 
+Cantidad: 1 
+Precio: 360</td>
+</tr>
+<tr>
+<td>Salud y Hogar</td>
+<td>19</td>
+<td>Codigo: 255 
+Cantidad: 1 
+Precio: 943</td>
+</tr>
+</table>
+    >];
+}

@@ -13,7 +13,11 @@ import (
 	"strconv"
 	"strings"
 
+	"crypto/sha256"
+
 	"./ArbolAVL"
+	"./ArbolB"
+	"./Grafo"
 	"./MatrizD"
 	"github.com/gorilla/mux"
 )
@@ -61,12 +65,13 @@ type DT struct {
 	Productos    []Productos `json:"Productos"`
 }
 type Productos struct {
-	Nombre      string  `json:"Nombre"`
-	Codigo      int     `json:"Codigo"`
-	Descripcion string  `json:"Descripcion"`
-	Precio      float64 `json:"Precio"`
-	Cantidad    int     `json:"Cantidad"`
-	Imagen      string  `json:"Imagen"`
+	Nombre         string  `json:"Nombre"`
+	Codigo         int     `json:"Codigo"`
+	Descripcion    string  `json:"Descripcion"`
+	Precio         float64 `json:"Precio"`
+	Cantidad       int     `json:"Cantidad"`
+	Imagen         string  `json:"Imagen"`
+	Almacenamiento string  `json:"Almacenamiento"`
 }
 type auxiliar struct {
 	Prod []Productos `json:"Productos"`
@@ -78,6 +83,9 @@ var vector []Lista_doble
 var datos Datos_fin
 var inv Inventarios
 var tempo busqueda
+var usuarios ArbolB.Arbol
+var distancias Grafo.Total
+var grafo Grafo.ListaDoble
 
 func inicio(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Hola")
@@ -165,6 +173,8 @@ func temporal(w http.ResponseWriter, r *http.Request) {
 func Pedidos(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 	var prueba MatrizD.Pedidos
+	pila := Grafo.Pila{}
+	numP := 0
 
 	reqbody, err := ioutil.ReadAll(r.Body)
 
@@ -174,7 +184,72 @@ func Pedidos(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal(reqbody, &prueba)
 	w.Header().Set("Content-Type", "application-json")
 	w.WriteHeader(http.StatusCreated)
-	mPedidos(prueba)
+	Grafo.Tipos(prueba, &numP)
+	tipos := make([]string, numP)
+
+	mPedidos(prueba, &tipos)
+	aux := 0
+	for i := 0; i < len(prueba.Ped); i++ {
+		for j := 0; j < len(prueba.Ped[i].Productos); j++ {
+			tipos[aux] = prueba.Ped[i].Productos[j].Almacenamiento
+			aux++
+		}
+	}
+	distancia := 0.0
+	tabla := "digraph {\n    tbl[\n     shape=plaintext\n     label=<\n     <table border='0' cellborder='1' color='blue' cellspacing='0'>\n" + "<tr> <td>Inicio</td> <td> Final </td> <td>Distancia</td></tr>\n"
+	inicio := tipos[0]
+	pila.Push(grafo.PosIn)
+	pila.Push(inicio)
+
+	grafo.Dikstra(grafo.PosIn, tipos[0], len(distancias.Datos), &distancia)
+	tabla += "<tr>\n<td>" + grafo.PosIn + "</td>\n<td>" + inicio + "</td>\n<td>" + fmt.Sprint(distancia) + "</td>\n</tr>\n"
+
+	for i := 1; i < len(tipos); i++ {
+		if Grafo.Existe(pila, tipos[i]) == false {
+
+			grafo.Dikstra(inicio, tipos[i], len(distancias.Datos), &distancia)
+			pila.Push(tipos[i])
+			tabla += "<tr>\n<td>" + inicio + "</td>\n<td>" + tipos[i] + "</td>\n<td>" + fmt.Sprint(distancia) + "</td>\n</tr>\n"
+			inicio = tipos[i]
+
+		}
+	}
+	grafo.Dikstra(inicio, grafo.PosFin, len(distancias.Datos), &distancia)
+	tabla += "<tr>\n<td>" + inicio + "</td>\n<td>" + grafo.PosFin + "</td>\n<td>" + fmt.Sprint(distancia) + "</td>\n</tr>"
+	tabla += "</table>\n>]\n}"
+	fmt.Println(tabla)
+
+}
+
+func NuevoP(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	var prueba MatrizD.Pedidos
+
+	reqbody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		fmt.Fprint(w, "Inserte datos validos")
+	}
+	json.Unmarshal(reqbody, &prueba)
+	w.Header().Set("Content-Type", "application-json")
+	w.WriteHeader(http.StatusCreated)
+	usuarios.Gpedido(prueba.Usuario, prueba, nil)
+
+}
+func CargarP(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	var prueba int
+	var aux MatrizD.Pedidos
+	reqbody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		fmt.Fprint(w, "Inserte datos validos")
+	}
+	json.Unmarshal(reqbody, &prueba)
+	w.Header().Set("Content-Type", "application-json")
+	w.WriteHeader(http.StatusCreated)
+	usuarios.Gpedido(prueba, aux, w)
+
 }
 func listaPedidos(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
@@ -233,12 +308,143 @@ func meses(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	MatrizD.Meses(ima.Nombre, ima.Año, ima.Mes, w)
 }
+func usuario(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	var datosUs ArbolB.Usuas
+	reqbody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		fmt.Fprint(w, "Inserte datos validos")
+	}
+	json.Unmarshal(reqbody, &datosUs)
+	w.Header().Set("Content-Type", "application-json")
+	w.WriteHeader(http.StatusCreated)
+	for i := 0; i < len(datosUs.Usuarios); i++ {
+		contra := sha256.Sum256([]byte(datosUs.Usuarios[i].Password))
+		datosUs.Usuarios[i].Password = fmt.Sprintf("%x", contra)
+	}
+
+	if usuarios.Raiz == nil {
+
+		usuarios = *ArbolB.Nuevoarbol(5)
+		for i := 0; i < len(datosUs.Usuarios); i++ {
+			usuarios.Insertar(datosUs.Usuarios[i])
+		}
+	} else {
+		for i := 0; i < len(datosUs.Usuarios); i++ {
+			usuarios.Insertar(datosUs.Usuarios[i])
+		}
+	}
+	usuarios.Graficar("ArbolB")
+	usuarios.Graficar("ArbolB")
+	usuarios.Graficar("ArbolB")
+
+}
+
+func buscarUsu(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	var ima ArbolB.Usu
+
+	reqbody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		fmt.Fprint(w, "Inserte datos validos")
+	}
+	json.Unmarshal(reqbody, &ima)
+	w.Header().Set("Content-Type", "application-json")
+	w.WriteHeader(http.StatusCreated)
+	contra := sha256.Sum256([]byte(ima.Pass))
+
+	ima.Pass = fmt.Sprintf("%x", contra)
+	usuarios.Buscar(ima.DPI, ima.Pass, ima.Correo, w)
+}
+
+func crearGrafo(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+
+	reqbody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		fmt.Fprint(w, "Inserte datos validos")
+	}
+	json.Unmarshal(reqbody, &distancias)
+	w.Header().Set("Content-Type", "application-json")
+	w.WriteHeader(http.StatusCreated)
+
+	if grafo.Inicio == nil {
+		grafo = *Grafo.Nuevosvertices(distancias.PosicionI, distancias.Entrega)
+	}
+	Grafo.CrearMadya(len(distancias.Datos))
+	for i := 0; i < len(distancias.Datos); i++ {
+		grafo.Insertar(distancias.Datos[i].Nombre, i)
+
+	}
+	for i := 0; i < len(distancias.Datos); i++ {
+		for j := 0; j < len(distancias.Datos[i].Enlaces); j++ {
+			grafo.Enlazar(distancias.Datos[i].Nombre, distancias.Datos[i].Enlaces[j].Nombre, distancias.Datos[i].Enlaces[j].Distancia)
+
+		}
+	}
+	grafo.Graficar()
+
+}
+
+func arbolB(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	var ima string
+
+	reqbody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		fmt.Fprint(w, "Inserte datos validos")
+	}
+	json.Unmarshal(reqbody, &ima)
+	w.Header().Set("Content-Type", "application-json")
+	w.WriteHeader(http.StatusCreated)
+	ArbolB.BuscarImg("arbolB", w)
+}
+func arbolC(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	var ima string
+
+	reqbody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		fmt.Fprint(w, "Inserte datos validos")
+	}
+	json.Unmarshal(reqbody, &ima)
+	w.Header().Set("Content-Type", "application-json")
+	w.WriteHeader(http.StatusCreated)
+	ArbolB.BuscarImg("arbolC", w)
+}
+func arbolCS(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	var ima string
+
+	reqbody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		fmt.Fprint(w, "Inserte datos validos")
+	}
+	json.Unmarshal(reqbody, &ima)
+	w.Header().Set("Content-Type", "application-json")
+	w.WriteHeader(http.StatusCreated)
+	ArbolB.BuscarImg("arbolCS", w)
+}
 
 func main() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", inicio)
 
 	router.HandleFunc("/Cargar", crear).Methods("POST")
+	router.HandleFunc("/CrearU", usuario).Methods("POST")
+	router.HandleFunc("/ArbolB", arbolB).Methods("GET")
+	router.HandleFunc("/ArbolC", arbolC).Methods("GET")
+	router.HandleFunc("/ArbolCS", arbolCS).Methods("GET")
+	router.HandleFunc("/Gpedido", NuevoP).Methods("POST")
+	router.HandleFunc("/CargarP", CargarP).Methods("POST")
+	router.HandleFunc("/BuscarU", buscarUsu).Methods("POST")
+	router.HandleFunc("/Grafo", crearGrafo).Methods("POST")
 	router.HandleFunc("/Calendario", listaPedidos).Methods("POST")
 	router.HandleFunc("/Imagenes", matrices).Methods("POST")
 	router.HandleFunc("/ImagenesAños", años).Methods("POST")
@@ -317,7 +523,7 @@ func find(nombre string, c Lista_doble, arbol *ArbolAVL.Arbolavl, w http.Respons
 			} else if arbol == nil && nuevo == nil && año == 0 && pedidos == nil && tiendas == 0 {
 				produ := make([][]string, inicio.Productos)
 				for i := 0; i < inicio.Productos; i++ {
-					produ[i] = make([]string, 6)
+					produ[i] = make([]string, 7)
 
 				}
 				ArbolAVL.Matz(inicio.Productos)
@@ -328,7 +534,7 @@ func find(nombre string, c Lista_doble, arbol *ArbolAVL.Arbolavl, w http.Respons
 					codigo, _ := strconv.Atoi(produ[i][1])
 					precio, _ := strconv.Atoi(produ[i][3])
 					cantidad, _ := strconv.Atoi(produ[i][4])
-					aux2 := Productos{Nombre: produ[i][0], Codigo: codigo, Descripcion: produ[i][2], Precio: float64(precio), Cantidad: cantidad, Imagen: produ[i][5]}
+					aux2 := Productos{Nombre: produ[i][0], Codigo: codigo, Descripcion: produ[i][2], Precio: float64(precio), Cantidad: cantidad, Imagen: produ[i][5], Almacenamiento: produ[i][6]}
 					aux.Prod = append(aux.Prod, aux2)
 				}
 
@@ -646,7 +852,7 @@ func inven(t Inventarios) {
 	for i := 0; i < len(t.Tienda); i++ {
 		prueba := &ArbolAVL.Arbolavl{}
 		for j := 0; j < len(t.Tienda[i].Productos); j++ {
-			prueba.Insertar(t.Tienda[i].Productos[j].Nombre, t.Tienda[i].Productos[j].Codigo, t.Tienda[i].Productos[j].Descripcion, t.Tienda[i].Productos[j].Precio, t.Tienda[i].Productos[j].Cantidad, t.Tienda[i].Productos[j].Imagen)
+			prueba.Insertar(t.Tienda[i].Productos[j].Nombre, t.Tienda[i].Productos[j].Codigo, t.Tienda[i].Productos[j].Descripcion, t.Tienda[i].Productos[j].Precio, t.Tienda[i].Productos[j].Cantidad, t.Tienda[i].Productos[j].Imagen, t.Tienda[i].Productos[j].Almacenamiento)
 
 		}
 		Encontrado(t.Tienda[i].Tienda, t.Tienda[i].Departameto, t.Tienda[i].Calificacion, prueba, nil, len(t.Tienda[i].Productos), nil, nil, 0, 0)
@@ -710,11 +916,12 @@ func AV(nombre string, c Lista_doble, codigo int, cantidad int, l *MatrizD.Lista
 	return encontrado
 }
 
-func mPedidos(p MatrizD.Pedidos) {
+func mPedidos(p MatrizD.Pedidos, grafo *[]string) {
 	mex := false
 	mex3 := false
 
 	for i := 0; i < len(p.Ped); i++ {
+
 		a := strings.Split(p.Ped[i].Fecha, "-")
 		d, _ := strconv.Atoi(a[0])
 		m, _ := strconv.Atoi(a[1])
@@ -730,6 +937,7 @@ func mPedidos(p MatrizD.Pedidos) {
 				for j := 0; j < len(p.Ped[i].Productos); j++ {
 
 					if BuscarAVL(p.Ped[i].Tienda, p.Ped[i].Departamento, p.Ped[i].Calificacion, p.Ped[i].Productos[j].Codigo, 1, nil) == true {
+						(*grafo)[i] = p.Ped[i].Productos[j].Almacenamiento
 						nuevoND := &MatrizD.NodoInfo{ESTE: nil, NORTE: nil, SUR: nil, OESTE: nil, Cantida: 1, Producto: p.Ped[i].Productos[j].Codigo, Precio: ArbolAVL.Getprec(), Dia: d, Categoria: p.Ped[i].Departamento}
 
 						nuevaM.Inser(nuevoND)
@@ -747,6 +955,7 @@ func mPedidos(p MatrizD.Pedidos) {
 				for j := 0; j < len(p.Ped[i].Productos); j++ {
 
 					if BuscarAVL(p.Ped[i].Tienda, p.Ped[i].Departamento, p.Ped[i].Calificacion, p.Ped[i].Productos[j].Codigo, 1, nil) == true {
+						(*grafo)[i] = p.Ped[i].Productos[j].Almacenamiento
 						nuevoND := &MatrizD.NodoInfo{ESTE: nil, NORTE: nil, SUR: nil, OESTE: nil, Cantida: 1, Producto: p.Ped[i].Productos[j].Codigo, Precio: ArbolAVL.Getprec(), Dia: d, Categoria: p.Ped[i].Departamento}
 
 						nuevaM.Inser(nuevoND)
@@ -764,6 +973,7 @@ func mPedidos(p MatrizD.Pedidos) {
 				for j := 0; j < len(p.Ped[i].Productos); j++ {
 
 					if BuscarAVL(p.Ped[i].Tienda, p.Ped[i].Departamento, p.Ped[i].Calificacion, p.Ped[i].Productos[j].Codigo, 1, nil) == true {
+						(*grafo)[i] = p.Ped[i].Productos[j].Almacenamiento
 						nuevoND := &MatrizD.NodoInfo{ESTE: nil, NORTE: nil, SUR: nil, OESTE: nil, Cantida: 1, Producto: p.Ped[i].Productos[j].Codigo, Precio: ArbolAVL.Getprec(), Dia: d, Categoria: p.Ped[i].Departamento}
 
 						nuevaM.Inser(nuevoND)
@@ -779,6 +989,7 @@ func mPedidos(p MatrizD.Pedidos) {
 
 		} else {
 			for j := 0; j < len(p.Ped[i].Productos); j++ {
+				(*grafo)[i] = p.Ped[i].Productos[j].Almacenamiento
 				if BuscarAVL(p.Ped[i].Tienda, p.Ped[i].Departamento, p.Ped[i].Calificacion, p.Ped[i].Productos[j].Codigo, 1, nil) == true {
 					nuevoND := &MatrizD.NodoInfo{ESTE: nil, NORTE: nil, SUR: nil, OESTE: nil, Cantida: 1, Producto: p.Ped[i].Productos[j].Codigo, Precio: ArbolAVL.Getprec(), Dia: d, Categoria: p.Ped[i].Departamento}
 					nombre := p.Ped[i].Tienda

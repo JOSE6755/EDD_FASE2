@@ -105,14 +105,14 @@ func rodaID(n *Nodo, n1 *Nodo) *Nodo {
 	return n2
 }
 
-func insertar(raiz *Nodo, nombre string, codigo int, des string, precio float64, cantidad int, imagen string, hc *bool) *Nodo {
+func insertar(raiz *Nodo, nombre string, codigo int, des string, precio float64, cantidad int, imagen string, hc *bool, almacenamiento string) *Nodo {
 	var n1 *Nodo
 	if raiz == nil {
-		raiz = &Nodo{Nombre: nombre, Codigo: codigo, Descripcion: des, Precio: precio, Cantidad: cantidad, Imagen: imagen, altura: 0}
+		raiz = &Nodo{Nombre: nombre, Codigo: codigo, Descripcion: des, Precio: precio, Cantidad: cantidad, Imagen: imagen, altura: 0, Almacenamiento: almacenamiento}
 		*hc = true
 
 	} else if codigo < raiz.Codigo {
-		izq := insertar(raiz.izq, nombre, codigo, des, precio, cantidad, imagen, hc)
+		izq := insertar(raiz.izq, nombre, codigo, des, precio, cantidad, imagen, hc, almacenamiento)
 		raiz.izq = izq
 		if *hc == true {
 			switch raiz.altura {
@@ -136,7 +136,7 @@ func insertar(raiz *Nodo, nombre string, codigo int, des string, precio float64,
 		}
 
 	} else if codigo > raiz.Codigo {
-		der := insertar(raiz.der, nombre, codigo, des, precio, cantidad, imagen, hc)
+		der := insertar(raiz.der, nombre, codigo, des, precio, cantidad, imagen, hc, almacenamiento)
 		raiz.der = der
 		if *hc == true {
 			switch raiz.altura {
@@ -161,10 +161,10 @@ func insertar(raiz *Nodo, nombre string, codigo int, des string, precio float64,
 	return raiz
 }
 
-func (a *Arbolavl) Insertar(nombre string, codigo int, des string, precio float64, cantidad int, imagen string) {
+func (a *Arbolavl) Insertar(nombre string, codigo int, des string, precio float64, cantidad int, imagen string, almacenamiento string) {
 	b := false
 	c := &b
-	a.Raiz = insertar(a.Raiz, nombre, codigo, des, precio, cantidad, imagen, c)
+	a.Raiz = insertar(a.Raiz, nombre, codigo, des, precio, cantidad, imagen, c, almacenamiento)
 }
 
 var tiendas string
@@ -242,7 +242,7 @@ func (n *Nodo) DisplayNodesInOrder() {
 
 	}
 
-	pru[l] = append(pru[l], n.Nombre, strconv.Itoa(n.Codigo), n.Descripcion, strconv.Itoa(int(n.Precio)), strconv.Itoa(n.Cantidad), n.Imagen)
+	pru[l] = append(pru[l], n.Nombre, strconv.Itoa(n.Codigo), n.Descripcion, strconv.Itoa(int(n.Precio)), strconv.Itoa(n.Cantidad), n.Imagen, n.Almacenamiento)
 	l++
 	fmt.Println(l)
 
@@ -276,6 +276,7 @@ func (n *Nodo) DisplayNodesInOrder2(codigo int, cantidad int) {
 	if n.Codigo == codigo {
 		if cantidad < n.Cantidad {
 			prec = n.Precio
+
 			encon = true
 
 		}

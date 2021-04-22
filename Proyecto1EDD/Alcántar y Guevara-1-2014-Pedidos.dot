@@ -1,0 +1,71 @@
+digraph {
+    tbl[
+     shape=plaintext
+     label=<
+     <table border='0' cellborder='1' color='blue' cellspacing='0'>
+<tr> <td>Departamento</td> <td> Dia </td> <td>Producto</td></tr>
+<tr>
+<td>Television y video</td>
+<td>3</td>
+<td>Producto: 650
+Cantidad: 1
+Precio: 193</td>
+</tr><tr>
+<td>Television y video</td>
+<td>3</td>
+<td>Codigo: 649 
+Cantidad: 1 
+Precio: 160</td>
+</tr>
+<tr>
+<td>Television y video</td>
+<td>3</td>
+<td>Codigo: 659 
+Cantidad: 1 
+Precio: 64</td>
+</tr>
+<tr>
+<td>Television y video</td>
+<td>3</td>
+<td>Codigo: 666 
+Cantidad: 1 
+Precio: 739</td>
+</tr>
+<tr>
+<td>Television y video</td>
+<td>3</td>
+<td>Codigo: 647 
+Cantidad: 1 
+Precio: 670</td>
+</tr>
+<tr>
+<td>Television y video</td>
+<td>3</td>
+<td>Codigo: 653 
+Cantidad: 1 
+Precio: 466</td>
+</tr>
+<tr>
+<td>Television y video</td>
+<td>3</td>
+<td>Codigo: 680 
+Cantidad: 1 
+Precio: 738</td>
+</tr>
+<tr>
+<td>Television y video</td>
+<td>3</td>
+<td>Codigo: 687 
+Cantidad: 1 
+Precio: 750</td>
+</tr>
+<tr>
+<td>Television y video</td>
+<td>3</td>
+<td>Codigo: 686 
+Cantidad: 1 
+Precio: 583</td>
+</tr>
+</table>
+    >];
+}

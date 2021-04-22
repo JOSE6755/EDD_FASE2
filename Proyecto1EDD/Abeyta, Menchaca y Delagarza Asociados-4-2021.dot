@@ -1,0 +1,37 @@
+digraph Sparce_Matrix {
+node [shape=box]
+MT[label="Matrix",width=1.5,style=filled,fillcolor=firebrick1,group=1];
+e0[ shape = point, width = 0 ];
+e1[ shape = point, width = 0 ];
+V0[label="Reproductores web"width = 1.5 style = filled, fillcolor = bisque1, group = 1];
+V1[label="Salud y Hogar"width = 1.5 style = filled, fillcolor = bisque1, group = 1];
+V2[label="Television y video"width = 1.5 style = filled, fillcolor = bisque1, group = 1];
+V0-> V1
+V1-> V0
+V1-> V2
+V2-> V1
+MT->V0
+H0[label="9"width = 1.5 style = filled, fillcolor = lightskyblue, group =2];
+MT->V0
+MT->H0
+{rank=same; MT;H0;}
+"0xc000127200"[label="Pedidos" width=1.5,group=2];
+"0xc000127320"[label="Pedidos" width=1.5,group=2];
+"0xc000420900"[label="Pedidos" width=1.5,group=2];
+V0->"0xc000127200"
+"0xc000127200"->V0
+{rank=same V0;"0xc000127200";}
+V1->"0xc000127320"
+"0xc000127320"->V1
+{rank=same V1;"0xc000127320";}
+V2->"0xc000420900"
+"0xc000420900"->V2
+{rank=same V2;"0xc000420900";}
+H0->"0xc000127200"
+"0xc000127200"->H0
+"0xc000127200"->"0xc000127320"
+"0xc000127320"->"0xc000127200"
+"0xc000127320"->"0xc000420900"
+"0xc000420900"->"0xc000127320"
+
+}

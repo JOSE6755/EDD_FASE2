@@ -1,0 +1,92 @@
+digraph {
+    tbl[
+     shape=plaintext
+     label=<
+     <table border='0' cellborder='1' color='blue' cellspacing='0'>
+<tr> <td>Departamento</td> <td> Dia </td> <td>Producto</td></tr>
+<tr>
+<td>Tegnología</td>
+<td>27</td>
+<td>Producto: 582
+Cantidad: 1
+Precio: 900</td>
+</tr><tr>
+<td>Tegnología</td>
+<td>27</td>
+<td>Codigo: 574 
+Cantidad: 1 
+Precio: 897</td>
+</tr>
+<tr>
+<td>Tegnología</td>
+<td>27</td>
+<td>Codigo: 586 
+Cantidad: 1 
+Precio: 553</td>
+</tr>
+<tr>
+<td>Tegnología</td>
+<td>27</td>
+<td>Codigo: 577 
+Cantidad: 1 
+Precio: 742</td>
+</tr>
+<tr>
+<td>Tegnología</td>
+<td>27</td>
+<td>Codigo: 581 
+Cantidad: 1 
+Precio: 953</td>
+</tr>
+<tr>
+<td>Tegnología</td>
+<td>27</td>
+<td>Codigo: 595 
+Cantidad: 1 
+Precio: 440</td>
+</tr>
+<tr>
+<td>Tegnología</td>
+<td>27</td>
+<td>Codigo: 581 
+Cantidad: 1 
+Precio: 953</td>
+</tr>
+<tr>
+<td>Tegnología</td>
+<td>27</td>
+<td>Codigo: 590 
+Cantidad: 1 
+Precio: 388</td>
+</tr>
+<tr>
+<td>Tegnología</td>
+<td>27</td>
+<td>Codigo: 581 
+Cantidad: 1 
+Precio: 953</td>
+</tr>
+<tr>
+<td>Tegnología</td>
+<td>27</td>
+<td>Codigo: 584 
+Cantidad: 1 
+Precio: 488</td>
+</tr>
+<tr>
+<td>Tegnología</td>
+<td>27</td>
+<td>Codigo: 575 
+Cantidad: 1 
+Precio: 42</td>
+</tr>
+<tr>
+<td>Tegnología</td>
+<td>27</td>
+<td>Codigo: 601 
+Cantidad: 1 
+Precio: 80</td>
+</tr>
+</table>
+    >];
+}

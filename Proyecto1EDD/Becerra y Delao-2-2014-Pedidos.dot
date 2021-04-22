@@ -1,0 +1,78 @@
+digraph {
+    tbl[
+     shape=plaintext
+     label=<
+     <table border='0' cellborder='1' color='blue' cellspacing='0'>
+<tr> <td>Departamento</td> <td> Dia </td> <td>Producto</td></tr>
+<tr>
+<td>Monitores</td>
+<td>22</td>
+<td>Producto: 349
+Cantidad: 1
+Precio: 122</td>
+</tr><tr>
+<td>Monitores</td>
+<td>22</td>
+<td>Codigo: 354 
+Cantidad: 1 
+Precio: 822</td>
+</tr>
+<tr>
+<td>Monitores</td>
+<td>22</td>
+<td>Codigo: 343 
+Cantidad: 1 
+Precio: 574</td>
+</tr>
+<tr>
+<td>Monitores</td>
+<td>22</td>
+<td>Codigo: 366 
+Cantidad: 1 
+Precio: 811</td>
+</tr>
+<tr>
+<td>Monitores</td>
+<td>22</td>
+<td>Codigo: 365 
+Cantidad: 1 
+Precio: 24</td>
+</tr>
+<tr>
+<td>Monitores</td>
+<td>22</td>
+<td>Codigo: 364 
+Cantidad: 1 
+Precio: 129</td>
+</tr>
+<tr>
+<td>Monitores</td>
+<td>22</td>
+<td>Codigo: 356 
+Cantidad: 1 
+Precio: 189</td>
+</tr>
+<tr>
+<td>Monitores</td>
+<td>22</td>
+<td>Codigo: 340 
+Cantidad: 1 
+Precio: 181</td>
+</tr>
+<tr>
+<td>Monitores</td>
+<td>22</td>
+<td>Codigo: 341 
+Cantidad: 1 
+Precio: 580</td>
+</tr>
+<tr>
+<td>Monitores</td>
+<td>22</td>
+<td>Codigo: 349 
+Cantidad: 1 
+Precio: 122</td>
+</tr>
+</table>
+    >];
+}

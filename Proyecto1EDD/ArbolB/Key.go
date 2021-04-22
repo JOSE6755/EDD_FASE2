@@ -1,11 +1,20 @@
 package ArbolB
 
+import (
+	"../MatrizD"
+)
+
+type Usuas struct {
+	Usuarios []*Key `json:"Usuarios"`
+}
+
 type Key struct {
-	DPI       int    `json:"Dpi"`
-	Nombre    string `json:"Nombre"`
-	Correo    string `json:"Correo"`
-	Password  string `json:"Password"`
-	Cuenta    string `json:"Cuenta"`
+	DPI       int             `json:"Dpi"`
+	Nombre    string          `json:"Nombre"`
+	Correo    string          `json:"Correo"`
+	Password  string          `json:"Password"`
+	Cuenta    string          `json:"Cuenta"`
+	Pedidos   MatrizD.Pedidos `json:"Pedidos"`
 	Izquierdo *Nodo
 	Derecho   *Nodo
 }

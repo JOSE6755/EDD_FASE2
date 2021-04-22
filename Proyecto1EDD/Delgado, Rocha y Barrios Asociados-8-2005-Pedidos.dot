@@ -1,0 +1,99 @@
+digraph {
+    tbl[
+     shape=plaintext
+     label=<
+     <table border='0' cellborder='1' color='blue' cellspacing='0'>
+<tr> <td>Departamento</td> <td> Dia </td> <td>Producto</td></tr>
+<tr>
+<td>Reproductores web</td>
+<td>25</td>
+<td>Producto: 394
+Cantidad: 1
+Precio: 76</td>
+</tr><tr>
+<td>Reproductores web</td>
+<td>25</td>
+<td>Codigo: 401 
+Cantidad: 1 
+Precio: 4</td>
+</tr>
+<tr>
+<td>Reproductores web</td>
+<td>25</td>
+<td>Codigo: 372 
+Cantidad: 1 
+Precio: 584</td>
+</tr>
+<tr>
+<td>Reproductores web</td>
+<td>25</td>
+<td>Codigo: 397 
+Cantidad: 1 
+Precio: 921</td>
+</tr>
+<tr>
+<td>Reproductores web</td>
+<td>25</td>
+<td>Codigo: 389 
+Cantidad: 1 
+Precio: 926</td>
+</tr>
+<tr>
+<td>Reproductores web</td>
+<td>25</td>
+<td>Codigo: 394 
+Cantidad: 1 
+Precio: 76</td>
+</tr>
+<tr>
+<td>Reproductores web</td>
+<td>25</td>
+<td>Codigo: 385 
+Cantidad: 1 
+Precio: 307</td>
+</tr>
+<tr>
+<td>Reproductores web</td>
+<td>25</td>
+<td>Codigo: 380 
+Cantidad: 1 
+Precio: 354</td>
+</tr>
+<tr>
+<td>Reproductores web</td>
+<td>25</td>
+<td>Codigo: 375 
+Cantidad: 1 
+Precio: 891</td>
+</tr>
+<tr>
+<td>Reproductores web</td>
+<td>25</td>
+<td>Codigo: 378 
+Cantidad: 1 
+Precio: 1</td>
+</tr>
+<tr>
+<td>Reproductores web</td>
+<td>25</td>
+<td>Codigo: 384 
+Cantidad: 1 
+Precio: 870</td>
+</tr>
+<tr>
+<td>Reproductores web</td>
+<td>25</td>
+<td>Codigo: 406 
+Cantidad: 1 
+Precio: 264</td>
+</tr>
+<tr>
+<td>Reproductores web</td>
+<td>25</td>
+<td>Codigo: 404 
+Cantidad: 1 
+Precio: 664</td>
+</tr>
+</table>
+    >];
+}

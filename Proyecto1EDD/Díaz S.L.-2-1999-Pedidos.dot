@@ -1,0 +1,64 @@
+digraph {
+    tbl[
+     shape=plaintext
+     label=<
+     <table border='0' cellborder='1' color='blue' cellspacing='0'>
+<tr> <td>Departamento</td> <td> Dia </td> <td>Producto</td></tr>
+<tr>
+<td>Reproductores web</td>
+<td>17</td>
+<td>Producto: 29
+Cantidad: 1
+Precio: 232</td>
+</tr><tr>
+<td>Reproductores web</td>
+<td>17</td>
+<td>Codigo: 38 
+Cantidad: 1 
+Precio: 436</td>
+</tr>
+<tr>
+<td>Reproductores web</td>
+<td>17</td>
+<td>Codigo: 40 
+Cantidad: 1 
+Precio: 822</td>
+</tr>
+<tr>
+<td>Reproductores web</td>
+<td>17</td>
+<td>Codigo: 27 
+Cantidad: 1 
+Precio: 650</td>
+</tr>
+<tr>
+<td>Reproductores web</td>
+<td>17</td>
+<td>Codigo: 43 
+Cantidad: 1 
+Precio: 309</td>
+</tr>
+<tr>
+<td>Reproductores web</td>
+<td>17</td>
+<td>Codigo: 43 
+Cantidad: 1 
+Precio: 309</td>
+</tr>
+<tr>
+<td>Reproductores web</td>
+<td>17</td>
+<td>Codigo: 43 
+Cantidad: 1 
+Precio: 309</td>
+</tr>
+<tr>
+<td>Reproductores web</td>
+<td>17</td>
+<td>Codigo: 37 
+Cantidad: 1 
+Precio: 847</td>
+</tr>
+</table>
+    >];
+}

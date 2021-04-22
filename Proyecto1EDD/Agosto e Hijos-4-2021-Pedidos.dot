@@ -1,0 +1,15 @@
+digraph {
+    tbl[
+     shape=plaintext
+     label=<
+     <table border='0' cellborder='1' color='blue' cellspacing='0'>
+<tr> <td>Departamento</td> <td> Dia </td> <td>Producto</td></tr>
+<tr>
+<td>Cocina</td>
+<td>19</td>
+<td>Producto: 806
+Cantidad: 1
+Precio: 228</td>
+</tr></table>
+    >];
+}

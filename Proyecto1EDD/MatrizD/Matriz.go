@@ -81,7 +81,8 @@ type Lista_doble struct {
 }
 
 type Pedidos struct {
-	Ped []DP `json:"Pedidos"`
+	Ped     []DP `json:"Pedidos"`
+	Usuario int  `json:"Usuario"`
 }
 
 type DP struct {
@@ -93,7 +94,11 @@ type DP struct {
 }
 
 type Prod struct {
-	Codigo int `json:"Codigo"`
+	Codigo         int     `json:"Codigo"`
+	Nombre         string  `json:"Nombre"`
+	Cantidad       int     `json:"Cantidad"`
+	Precio         float64 `json:"Precio"`
+	Almacenamiento string  `json:"Almacenamiento"`
 }
 type Infoaño struct {
 	Datos []Listaño `json:"Datos"`
