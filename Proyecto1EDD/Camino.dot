@@ -1,0 +1,23 @@
+digraph {
+    tbl[
+     shape=plaintext
+     label=<
+     <table border='0' cellborder='1' color='blue' cellspacing='0'>
+<tr> <td>Inicio</td> <td> Final </td> <td>Distancia</td></tr>
+<tr>
+<td>Andromeda</td>
+<td>La jirafa</td>
+<td>5</td>
+</tr>
+<tr>
+<td>La jirafa</td>
+<td>Acuario</td>
+<td>46</td>
+</tr>
+<tr>
+<td>Acuario</td>
+<td>El cincel</td>
+<td>58</td>
+</tr></table>
+>]
+}

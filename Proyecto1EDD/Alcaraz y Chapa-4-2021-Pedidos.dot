@@ -6,10 +6,23 @@ digraph {
 <tr> <td>Departamento</td> <td> Dia </td> <td>Producto</td></tr>
 <tr>
 <td>Cocina</td>
-<td>19</td>
+<td>27</td>
 <td>Producto: 912
 Cantidad: 1
 Precio: 81</td>
-</tr></table>
+</tr><tr>
+<td>Reproductores web</td>
+<td>27</td>
+<td>Producto: 852
+Cantidad: 1
+Precio: 423</td>
+</tr><tr>
+<td>Reproductores web</td>
+<td>27</td>
+<td>Codigo: 852 
+Cantidad: 1 
+Precio: 423</td>
+</tr>
+</table>
     >];
 }

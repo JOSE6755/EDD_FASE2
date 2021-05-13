@@ -246,6 +246,9 @@ func (l *ListaDoble) Dikstra(inicioRobot string, inicioPed string, len int, tota
 			Recorrido[indexIn] = 1
 			distancia = aux
 			aux = 0
+			if indexIn == 34 {
+				fmt.Println(matrizAd[34])
+			}
 			indexIn = siguiente
 			i = -1
 			Recorrido[siguiente] = 1

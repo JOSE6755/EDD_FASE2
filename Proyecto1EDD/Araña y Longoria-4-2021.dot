@@ -1,0 +1,19 @@
+digraph Sparce_Matrix {
+node [shape=box]
+MT[label="Matrix",width=1.5,style=filled,fillcolor=firebrick1,group=1];
+e0[ shape = point, width = 0 ];
+e1[ shape = point, width = 0 ];
+V0[label="Monitores"width = 1.5 style = filled, fillcolor = bisque1, group = 1];
+MT->V0
+H0[label="27"width = 1.5 style = filled, fillcolor = lightskyblue, group =2];
+MT->V0
+MT->H0
+{rank=same; MT;H0;}
+"0xc00041c000"[label="Pedidos" width=1.5,group=2];
+V0->"0xc00041c000"
+"0xc00041c000"->V0
+{rank=same V0;"0xc00041c000";}
+H0->"0xc00041c000"
+"0xc00041c000"->H0
+
+}

@@ -5,15 +5,15 @@ e0[ shape = point, width = 0 ];
 e1[ shape = point, width = 0 ];
 V0[label="Cocina"width = 1.5 style = filled, fillcolor = bisque1, group = 1];
 MT->V0
-H0[label="19"width = 1.5 style = filled, fillcolor = lightskyblue, group =2];
+H0[label="27"width = 1.5 style = filled, fillcolor = lightskyblue, group =2];
 MT->V0
 MT->H0
 {rank=same; MT;H0;}
-"0xc0000aad80"[label="Pedidos" width=1.5,group=2];
-V0->"0xc0000aad80"
-"0xc0000aad80"->V0
-{rank=same V0;"0xc0000aad80";}
-H0->"0xc0000aad80"
-"0xc0000aad80"->H0
+"0xc00047e090"[label="Pedidos" width=1.5,group=2];
+V0->"0xc00047e090"
+"0xc00047e090"->V0
+{rank=same V0;"0xc00047e090";}
+H0->"0xc00047e090"
+"0xc00047e090"->H0
 
 }

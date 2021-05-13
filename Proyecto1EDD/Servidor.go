@@ -18,7 +18,9 @@ import (
 	"./ArbolAVL"
 	"./ArbolB"
 	"./Grafo"
+	"./Hash"
 	"./MatrizD"
+	"./Merkle"
 	"github.com/gorilla/mux"
 )
 
@@ -42,12 +44,16 @@ type Tiendas struct {
 	Contacto     string `json:"Contacto"`
 	Calificacion int    `json:"Calificacion"`
 	Logo         string `json:"Logo"`
+	Comentario   *Hash.Hashtable
+	Productos    *Merkle.Arbolito
+	Pedidos      *Merkle.Arbolito
 }
 
 type busqueda struct {
 	Departamento string `json:"Departamento"`
 	Nombre       string `json:"Nombre"`
 	Calificacion int    `json:"Calificacion"`
+	Comentarios  Hash.Node
 }
 
 type eliminacion struct {
@@ -86,6 +92,8 @@ var tempo busqueda
 var usuarios ArbolB.Arbol
 var distancias Grafo.Total
 var grafo Grafo.ListaDoble
+var MerkleUs *Merkle.ArbolitoUs
+var MerkleTi *Merkle.ArbolitoT
 
 func inicio(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Hola")
@@ -217,6 +225,14 @@ func Pedidos(w http.ResponseWriter, r *http.Request) {
 	grafo.Dikstra(inicio, grafo.PosFin, len(distancias.Datos), &distancia)
 	tabla += "<tr>\n<td>" + inicio + "</td>\n<td>" + grafo.PosFin + "</td>\n<td>" + fmt.Sprint(distancia) + "</td>\n</tr>"
 	tabla += "</table>\n>]\n}"
+	err2 := ioutil.WriteFile("Camino.dot", []byte(tabla), 0644)
+	if err2 != nil {
+		log.Fatal(err)
+	}
+	ruta, _ := exec.LookPath("dot")
+	cmd, _ := exec.Command(ruta, "-Tpng", "Camino.dot").Output()
+	mode := int(0777)
+	ioutil.WriteFile("Camino.png", cmd, os.FileMode(mode))
 	fmt.Println(tabla)
 
 }
@@ -325,20 +341,22 @@ func usuario(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if usuarios.Raiz == nil {
-
+		MerkleUs = Merkle.NuevoArbolUs()
 		usuarios = *ArbolB.Nuevoarbol(5)
 		for i := 0; i < len(datosUs.Usuarios); i++ {
 			usuarios.Insertar(datosUs.Usuarios[i])
+			MerkleUs.InsertarUs(datosUs.Usuarios[i].DPI, datosUs.Usuarios[i].Password, datosUs.Usuarios[i].Correo)
 		}
 	} else {
 		for i := 0; i < len(datosUs.Usuarios); i++ {
 			usuarios.Insertar(datosUs.Usuarios[i])
+			MerkleUs.InsertarUs(datosUs.Usuarios[i].DPI, datosUs.Usuarios[i].Password, datosUs.Usuarios[i].Correo)
 		}
 	}
 	usuarios.Graficar("ArbolB")
 	usuarios.Graficar("ArbolB")
 	usuarios.Graficar("ArbolB")
-
+	MerkleUs.CodigoUs()
 }
 
 func buscarUsu(w http.ResponseWriter, r *http.Request) {
@@ -431,6 +449,64 @@ func arbolCS(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	ArbolB.BuscarImg("arbolCS", w)
 }
+func ImgGrafo(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	var ima string
+
+	reqbody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		fmt.Fprint(w, "Inserte datos validos")
+	}
+	json.Unmarshal(reqbody, &ima)
+	w.Header().Set("Content-Type", "application-json")
+	w.WriteHeader(http.StatusCreated)
+	ArbolB.BuscarImg("Grafo", w)
+}
+func Caminito(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	var ima string
+
+	reqbody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		fmt.Fprint(w, "Inserte datos validos")
+	}
+	json.Unmarshal(reqbody, &ima)
+	w.Header().Set("Content-Type", "application-json")
+	w.WriteHeader(http.StatusCreated)
+	ArbolB.BuscarImg("Camino", w)
+}
+func TablaHash(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	var ima busqueda
+
+	reqbody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		fmt.Fprint(w, "Inserte datos validos")
+	}
+	json.Unmarshal(reqbody, &ima)
+	w.Header().Set("Content-Type", "application-json")
+	w.WriteHeader(http.StatusCreated)
+	//Falta mandarlo a buscar e insertar en esa tienda
+
+}
+func TablaHashProd(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	var ima busqueda
+
+	reqbody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		fmt.Fprint(w, "Inserte datos validos")
+	}
+	json.Unmarshal(reqbody, &ima)
+	w.Header().Set("Content-Type", "application-json")
+	w.WriteHeader(http.StatusCreated)
+	//Falta mandarlo a buscar e insertar en esa tienda
+
+}
 
 func main() {
 	router := mux.NewRouter().StrictSlash(true)
@@ -438,6 +514,8 @@ func main() {
 
 	router.HandleFunc("/Cargar", crear).Methods("POST")
 	router.HandleFunc("/CrearU", usuario).Methods("POST")
+	router.HandleFunc("/Caminito", Caminito).Methods("GET")
+	router.HandleFunc("/ImgGrafo", ImgGrafo).Methods("GET")
 	router.HandleFunc("/ArbolB", arbolB).Methods("GET")
 	router.HandleFunc("/ArbolC", arbolC).Methods("GET")
 	router.HandleFunc("/ArbolCS", arbolCS).Methods("GET")
@@ -484,6 +562,12 @@ type Lista_doble struct {
 
 func (l *Lista_doble) insertar(n Tiendas) {
 	nuevo := &nodo{Tiendas: n}
+	comentarios := Hash.NuevaTabla(7, 50, 50)
+	nuevo.Tiendas.Comentario = comentarios
+
+	ArbolP := Merkle.NuevoArbol()
+
+	nuevo.Tiendas.Pedidos = ArbolP
 	if l.inicio == nil {
 
 		l.inicio = nuevo
@@ -595,6 +679,7 @@ func llenar(a Datos_fin) {
 	vector = make([]Lista_doble, (len(a.Datos) * len(a.Datos[0].Departamentos) * 5))
 
 	ingresar(a)
+	MerkleTi.CodigoT()
 
 }
 
@@ -624,10 +709,11 @@ func Encontrado(nombre string, departamento string, calificacion int, arbol *Arb
 }
 
 func ingresar(datos Datos_fin) {
+	MerkleTi = Merkle.NuevoArbolT()
 	for i := 0; i < len(datos.Datos); i++ {
 		for j := 0; j < len(datos.Datos[i].Departamentos); j++ {
 			for k := 0; k < len(datos.Datos[i].Departamentos[j].Tiendas); k++ {
-
+				MerkleTi.Insertar(datos.Datos[i].Departamentos[j].Tiendas[k].Nombre, datos.Datos[i].Departamentos[j].Tiendas[k].Contacto, datos.Datos[i].Departamentos[j].Tiendas[k].Calificacion)
 				vector[((i*len(datos.Datos[i].Departamentos)+j)*5 + (datos.Datos[i].Departamentos[j].Tiendas[k].Calificacion - 1))].insertar(datos.Datos[i].Departamentos[j].Tiendas[k])
 			}
 		}
@@ -851,8 +937,10 @@ func listarT(a Datos_fin, w http.ResponseWriter) {
 func inven(t Inventarios) {
 	for i := 0; i < len(t.Tienda); i++ {
 		prueba := &ArbolAVL.Arbolavl{}
+		//ArbolM := Merkle.NuevoArbol()
 		for j := 0; j < len(t.Tienda[i].Productos); j++ {
 			prueba.Insertar(t.Tienda[i].Productos[j].Nombre, t.Tienda[i].Productos[j].Codigo, t.Tienda[i].Productos[j].Descripcion, t.Tienda[i].Productos[j].Precio, t.Tienda[i].Productos[j].Cantidad, t.Tienda[i].Productos[j].Imagen, t.Tienda[i].Productos[j].Almacenamiento)
+			//ArbolM.Insertar()
 
 		}
 		Encontrado(t.Tienda[i].Tienda, t.Tienda[i].Departameto, t.Tienda[i].Calificacion, prueba, nil, len(t.Tienda[i].Productos), nil, nil, 0, 0)

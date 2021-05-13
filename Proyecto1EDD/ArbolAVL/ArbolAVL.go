@@ -4,6 +4,8 @@ package ArbolAVL
 import (
 	"fmt"
 	"strconv"
+
+	"../Hash"
 )
 
 type Nodo struct {
@@ -14,6 +16,7 @@ type Nodo struct {
 	Cantidad       int     `json:"Cantidad"`
 	Imagen         string  `json:"Imagen"`
 	Almacenamiento string  `json:"Almacenamiento"`
+	Comentarios    *Hash.Hashtable
 	altura         int
 	izq            *Nodo
 	der            *Nodo
@@ -108,7 +111,8 @@ func rodaID(n *Nodo, n1 *Nodo) *Nodo {
 func insertar(raiz *Nodo, nombre string, codigo int, des string, precio float64, cantidad int, imagen string, hc *bool, almacenamiento string) *Nodo {
 	var n1 *Nodo
 	if raiz == nil {
-		raiz = &Nodo{Nombre: nombre, Codigo: codigo, Descripcion: des, Precio: precio, Cantidad: cantidad, Imagen: imagen, altura: 0, Almacenamiento: almacenamiento}
+		comentarios := Hash.NuevaTabla(7, 50, 0)
+		raiz = &Nodo{Nombre: nombre, Codigo: codigo, Descripcion: des, Precio: precio, Cantidad: cantidad, Imagen: imagen, altura: 0, Almacenamiento: almacenamiento, Comentarios: comentarios}
 		*hc = true
 
 	} else if codigo < raiz.Codigo {

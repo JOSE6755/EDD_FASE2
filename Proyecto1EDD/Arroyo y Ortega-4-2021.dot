@@ -1,0 +1,28 @@
+digraph Sparce_Matrix {
+node [shape=box]
+MT[label="Matrix",width=1.5,style=filled,fillcolor=firebrick1,group=1];
+e0[ shape = point, width = 0 ];
+e1[ shape = point, width = 0 ];
+V0[label="Belleza y Cuidado personal"width = 1.5 style = filled, fillcolor = bisque1, group = 1];
+V1[label="Electrónicos"width = 1.5 style = filled, fillcolor = bisque1, group = 1];
+V0-> V1
+V1-> V0
+MT->V0
+H0[label="27"width = 1.5 style = filled, fillcolor = lightskyblue, group =2];
+MT->V0
+MT->H0
+{rank=same; MT;H0;}
+"0xc0000666c0"[label="Pedidos" width=1.5,group=2];
+"0xc000066750"[label="Pedidos" width=1.5,group=2];
+V0->"0xc0000666c0"
+"0xc0000666c0"->V0
+{rank=same V0;"0xc0000666c0";}
+V1->"0xc000066750"
+"0xc000066750"->V1
+{rank=same V1;"0xc000066750";}
+H0->"0xc0000666c0"
+"0xc0000666c0"->H0
+"0xc0000666c0"->"0xc000066750"
+"0xc000066750"->"0xc0000666c0"
+
+}
